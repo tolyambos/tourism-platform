@@ -15,7 +15,7 @@ export const redis = new Proxy({} as IORedis, {
         lazyConnect: true
       });
     }
-    return (redisInstance as any)[prop];
+    return (redisInstance as IORedis)[prop as keyof IORedis];
   }
 });
 

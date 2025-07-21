@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e  # Exit on error
 
 # Railway build script for pnpm monorepo
 echo "🚀 Starting Railway build..."
@@ -24,11 +25,15 @@ cd ../..
 echo "Building CMS..."
 pnpm build:cms
 
+# Check if build succeeded
+if [ ! -d "apps/cms/.next/standalone" ]; then
+  echo "❌ Build failed: standalone directory not created"
+  exit 1
+fi
+
 # Copy static files to standalone
 echo "Copying static files..."
-if [ -d "apps/cms/.next/standalone" ]; then
-  cp -r apps/cms/.next/static apps/cms/.next/standalone/apps/cms/.next/
-  cp -r apps/cms/public apps/cms/.next/standalone/apps/cms/ 2>/dev/null || true
-fi
+cp -r apps/cms/.next/static apps/cms/.next/standalone/apps/cms/.next/
+cp -r apps/cms/public apps/cms/.next/standalone/apps/cms/ 2>/dev/null || true
 
 echo "✅ Build complete!"
