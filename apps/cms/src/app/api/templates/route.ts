@@ -46,7 +46,9 @@ export async function POST(request: NextRequest) {
     const template = await prisma.template.create({
       data: {
         name: body.name,
+        displayName: body.displayName || body.name,
         componentName: body.componentName,
+        category: body.category || 'content',
         isActive: body.isActive ?? true,
         schema: {},
         systemPrompt: '',

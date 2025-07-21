@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
-import { prisma } from '@tourism/database';
+import { prisma, Prisma } from '@tourism/database';
 import { z } from 'zod';
 import { cache, CacheManager } from '@/lib/cache';
 import { QueryOptimizer } from '@/lib/db/query-optimizer';
@@ -15,9 +15,9 @@ const updateSiteSchema = z.object({
   status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).optional(),
   languages: z.array(z.string()).optional(),
   defaultLanguage: z.string().optional(),
-  theme: z.any().optional(),
-  seoSettings: z.any().optional(),
-  features: z.any().optional()
+  theme: z.record(z.unknown()).optional(),
+  seoSettings: z.record(z.unknown()).optional(),
+  features: z.record(z.unknown()).optional()
 });
 
 // GET /api/sites/[siteId] - Get a single site
@@ -61,8 +61,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       ]);
       
       // Combine the data
-      (site as any).pages = pages;
-      (site as any).deployments = deployments;
+      const siteWithRelations = site as typeof site & { pages: typeof pages; deployments: typeof deployments };
+      siteWithRelations.pages = pages;
+      siteWithRelations.deployments = deployments;
     }
     
     if (!site) {
@@ -108,7 +109,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     // Update site
     const updatedSite = await prisma.site.update({
       where: { id: siteId },
-      data: validatedData
+      data: validatedData as Prisma.SiteUpdateInput
     });
     
     // Invalidate caches

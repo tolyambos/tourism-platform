@@ -3,7 +3,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { Header } from "@/components/header";
 import { prisma } from "@tourism/database";
-import { ArrowLeft, Rocket, CheckCircle, AlertCircle, Clock, ExternalLink } from "lucide-react";
+import { ArrowLeft, CheckCircle, AlertCircle, Clock, ExternalLink } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { DeployButton } from "@/components/deploy/deploy-button";
 

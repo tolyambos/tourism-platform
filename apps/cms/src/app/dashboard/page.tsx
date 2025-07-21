@@ -29,7 +29,7 @@ export default async function DashboardPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="mt-2 text-sm text-gray-600">
-            Welcome back, {user.firstName || 'User'}! Here's an overview of your tourism platform.
+            Welcome back, {user.firstName || 'User'}! Here&apos;s an overview of your tourism platform.
           </p>
         </div>
 

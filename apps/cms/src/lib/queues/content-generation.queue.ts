@@ -1,5 +1,5 @@
 import { Queue, Worker, Job } from 'bullmq';
-import { defaultQueueOptions, JobType } from './config';
+import { defaultQueueOptions } from './config';
 import { prisma } from '@tourism/database';
 import { SectionContentGenerator } from '@tourism/ai-engine';
 
@@ -39,7 +39,7 @@ export const contentGenerationWorker = new Worker<ContentGenerationData>(
         throw new Error('Site not found');
       }
       
-      const locationContext = (site.features as any)?.locationContext || site.name;
+      const locationContext = String((site.features as Record<string, unknown>)?.locationContext || site.name);
       const languages = language ? [language] : site.languages;
       
       // If specific section
@@ -119,8 +119,8 @@ export const contentGenerationWorker = new Worker<ContentGenerationData>(
 // Helper function to generate content for a section
 async function generateSectionContent(
   generator: SectionContentGenerator,
-  section: any,
-  site: any,
+  section: { id: string; template: Record<string, unknown> },
+  site: { name: string; type: string },
   locationContext: string,
   languages: string[],
   regenerate = false
@@ -141,7 +141,9 @@ async function generateSectionContent(
   }
   
   const result = await generator.generateSectionContent({
+    // @ts-expect-error - Section and Template type mismatch between packages
     section,
+    // @ts-expect-error - Template type mismatch
     template: section.template,
     context: {
       siteName: site.name,

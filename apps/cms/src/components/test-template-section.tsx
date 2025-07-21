@@ -7,7 +7,7 @@ interface TestTemplateSectionProps {
   templateId: string;
   systemPrompt: string;
   userPromptTemplate: string;
-  schema: any;
+  schema: unknown;
 }
 
 export function TestTemplateSection({
@@ -21,7 +21,7 @@ export function TestTemplateSection({
     attraction: 'Prague Castle',
     location: 'Prague'
   });
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{ content: unknown; usage?: { promptTokens: number; completionTokens: number; totalTokens: number }; model?: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 

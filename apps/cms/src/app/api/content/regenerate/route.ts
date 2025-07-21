@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
   
   try {
     const body = await request.json();
-    const { sectionId, language, regenerateImages = false } = body;
+    const { sectionId, language } = body;
     
     if (!sectionId || !language) {
       return NextResponse.json(
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
     
     const site = section.page.site;
-    const locationContext = (site.features as any)?.locationContext || site.name;
+    const locationContext = (site.features as Record<string, unknown>)?.locationContext || site.name;
     
     // Initialize content generator
     const generator = new SectionContentGenerator({
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     
     // Generate new content
     const result = await generator.generateSectionContent({
-      section: section as any,
+      section: section,
       template: section.template,
       context: {
         siteName: site.name,

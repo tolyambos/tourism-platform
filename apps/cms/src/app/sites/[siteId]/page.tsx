@@ -5,7 +5,7 @@ import { Header } from "@/components/header";
 import { RebuildSiteButton } from "@/components/rebuild-site-button";
 import { SiteActions } from "@/components/site-actions";
 import { prisma } from "@tourism/database";
-import { ArrowLeft, Globe, Edit, Zap, Settings, Eye } from "lucide-react";
+import { ArrowLeft, Globe, Edit, Zap, Settings } from "lucide-react";
 
 interface PageProps {
   params: Promise<{ siteId: string }>;

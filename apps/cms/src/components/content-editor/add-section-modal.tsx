@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { X, Plus, Search } from 'lucide-react';
-import { SectionTemplate } from '@tourism/database';
+import { Template } from '@tourism/database';
 
 interface AddSectionModalProps {
   isOpen: boolean;
@@ -11,7 +11,7 @@ interface AddSectionModalProps {
 }
 
 export function AddSectionModal({ isOpen, onClose, onAdd }: AddSectionModalProps) {
-  const [templates, setTemplates] = useState<SectionTemplate[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [loading, setLoading] = useState(true);

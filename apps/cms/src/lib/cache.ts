@@ -21,7 +21,7 @@ export class CacheManager {
     }
   }
   
-  async set(key: string, value: any, ttl?: number): Promise<void> {
+  async set(key: string, value: unknown, ttl?: number): Promise<void> {
     try {
       const serialized = JSON.stringify(value);
       if (ttl || this.defaultTTL) {

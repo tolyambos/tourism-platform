@@ -99,7 +99,7 @@ export default async function SiteSettingsPage({ params }: PageProps) {
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
                   <p className="mt-1 text-sm text-gray-500">
-                    Add your domain's CNAME record pointing to {site.subdomain}.tourism-platform.com
+                    Add your domain&apos;s CNAME record pointing to {site.subdomain}.tourism-platform.com
                   </p>
                 </div>
 
@@ -224,7 +224,7 @@ export default async function SiteSettingsPage({ params }: PageProps) {
                       <input
                         type="text"
                         id="meta-title"
-                        defaultValue={(site.config as any)?.seo?.title || ''}
+                        defaultValue={(site.seoSettings as Record<string, unknown> | undefined)?.title as string || ''}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                       />
                     </div>
@@ -235,7 +235,7 @@ export default async function SiteSettingsPage({ params }: PageProps) {
                       <textarea
                         id="meta-description"
                         rows={3}
-                        defaultValue={(site.config as any)?.seo?.description || ''}
+                        defaultValue={(site.seoSettings as Record<string, unknown> | undefined)?.description as string || ''}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                       />
                     </div>

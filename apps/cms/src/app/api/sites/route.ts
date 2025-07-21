@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
-import { prisma } from '@tourism/database';
+import { prisma, Prisma } from '@tourism/database';
 import { z } from 'zod';
 import { cache, CacheManager } from '@/lib/cache';
 import { QueryOptimizer } from '@/lib/db/query-optimizer';
@@ -12,7 +12,7 @@ const createSiteSchema = z.object({
   languages: z.array(z.string()).min(1),
   defaultLanguage: z.string(),
   locationContext: z.string().optional(),
-  theme: z.any().optional()
+  theme: z.record(z.unknown()).optional()
 });
 
 export async function GET(request: NextRequest) {
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    const where: any = {};
+    const where: Record<string, unknown> = {};
     
     if (status) {
       where.status = status;
@@ -57,8 +57,8 @@ export async function GET(request: NextRequest) {
       prisma.site.findMany(QueryOptimizer.getSitesForListing(user.id, {
         page,
         limit,
-        status,
-        search
+        status: status ?? undefined,
+        search: search ?? undefined
       })),
       prisma.site.count({ where })
     ]);
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Create site with pages and default sections
-    const { locationContext, ...siteData } = validatedData;
+    const { ...siteData } = validatedData;
     const site = await prisma.site.create({
       data: {
         ...siteData,
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
             status: 'DRAFT'
           }
         }
-      },
+      } as Prisma.SiteCreateInput,
       include: {
         pages: true
       }
@@ -180,8 +180,7 @@ export async function POST(request: NextRequest) {
     const { contentGenerationQueue } = await import('@/lib/queues');
     await contentGenerationQueue.add('generate-initial-content', {
       siteId: site.id,
-      pageId: homePage.id,
-      locationContext: validatedData.locationContext
+      pageId: homePage.id
     });
     
     // Invalidate user sites cache

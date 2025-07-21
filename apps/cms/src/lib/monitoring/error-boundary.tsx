@@ -59,7 +59,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
                 Something went wrong
               </h2>
               <p className="mt-2 text-sm text-gray-600">
-                We've been notified and are working on a fix.
+                We&apos;ve been notified and are working on a fix.
               </p>
               <button
                 onClick={this.resetError}

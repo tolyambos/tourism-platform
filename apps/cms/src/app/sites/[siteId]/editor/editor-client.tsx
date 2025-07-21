@@ -21,15 +21,48 @@ import toast, { Toaster } from 'react-hot-toast';
 import { SectionCard } from '@/components/content-editor/section-card';
 import { SectionEditorModal } from '@/components/content-editor/section-editor-modal';
 import { AddSectionModal } from '@/components/content-editor/add-section-modal';
+import type { Prisma } from '@tourism/database';
 
 interface EditorClientProps {
-  site: any;
-  homePage: any;
+  site: {
+    id: string;
+    domain?: string | null;
+    subdomain: string;
+  };
+  homePage: {
+    id: string;
+    type: string;
+    status: string;
+    sections?: Array<{
+      id: string;
+      pageId: string;
+      templateId: string;
+      order: number;
+      visibility: Prisma.JsonValue;
+      customStyles: Prisma.JsonValue;
+      createdAt: Date;
+      updatedAt: Date;
+      template: { 
+        name: string;
+        category: string;
+      };
+      content: Array<{ 
+        id: string;
+        data: Prisma.JsonValue; 
+        sectionId: string;
+        language: string;
+        imageUrls: string[];
+        generatedBy: string;
+        generatedAt: Date;
+        version: number;
+      }>;
+    }>;
+  } | undefined;
 }
 
 export function EditorClient({ site, homePage }: EditorClientProps) {
   const [sections, setSections] = useState(homePage?.sections || []);
-  const [editingSection, setEditingSection] = useState<any>(null);
+  const [editingSection, setEditingSection] = useState<typeof sections[0] | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -47,7 +80,7 @@ export function EditorClient({ site, homePage }: EditorClientProps) {
     const { active, over } = event;
 
     if (active.id !== over?.id) {
-      setSections((items: any[]) => {
+      setSections((items: typeof sections) => {
         const oldIndex = items.findIndex((item) => item.id === active.id);
         const newIndex = items.findIndex((item) => item.id === over?.id);
         return arrayMove(items, oldIndex, newIndex);
@@ -55,7 +88,7 @@ export function EditorClient({ site, homePage }: EditorClientProps) {
     }
   };
 
-  const handleSaveContent = async (sectionId: string, content: any) => {
+  const handleSaveContent = async (sectionId: string, content: unknown) => {
     try {
       const response = await fetch(`/api/sections/${sectionId}/content`, {
         method: 'PUT',
@@ -64,18 +97,45 @@ export function EditorClient({ site, homePage }: EditorClientProps) {
       });
 
       if (response.ok) {
-        setSections((prevSections: any[]) =>
-          prevSections.map((section) =>
-            section.id === sectionId
-              ? { ...section, content: [{ data: content, language: 'en' }] }
-              : section
-          )
+        const result = await response.json();
+        setSections((prevSections: typeof sections) =>
+          prevSections.map((section) => {
+            if (section.id === sectionId) {
+              // Update the content, keeping existing structure
+              const existingContent = section.content[0];
+              if (existingContent) {
+                return {
+                  ...section,
+                  content: [{
+                    ...existingContent,
+                    data: content as Prisma.JsonValue,
+                  }]
+                };
+              } else {
+                // Create new content object with all required fields
+                return {
+                  ...section,
+                  content: [{
+                    id: result.id || `temp-${Date.now()}`,
+                    data: content as Prisma.JsonValue,
+                    sectionId: sectionId,
+                    language: 'en',
+                    imageUrls: [],
+                    generatedBy: 'manual',
+                    generatedAt: new Date(),
+                    version: 1
+                  }]
+                };
+              }
+            }
+            return section;
+          })
         );
         toast.success('Content updated successfully');
       } else {
         throw new Error('Failed to save content');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to save content');
     }
   };
@@ -89,21 +149,20 @@ export function EditorClient({ site, homePage }: EditorClientProps) {
       });
 
       if (response.ok) {
-        setSections((prevSections: any[]) =>
+        setSections((prevSections: typeof sections) =>
           prevSections.filter((section) => section.id !== sectionId)
         );
         toast.success('Section deleted');
       } else {
         throw new Error('Failed to delete section');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete section');
     }
   };
 
   const handleRegenerateSection = async (sectionId: string) => {
     try {
-      const section = sections.find((s: any) => s.id === sectionId);
       toast.loading('Regenerating content with AI...', { id: sectionId });
 
       const response = await fetch(`/api/sections/${sectionId}/regenerate`, {
@@ -113,24 +172,55 @@ export function EditorClient({ site, homePage }: EditorClientProps) {
       });
 
       if (response.ok) {
-        const { content } = await response.json();
-        setSections((prevSections: any[]) =>
-          prevSections.map((s) =>
-            s.id === sectionId
-              ? { ...s, content: [{ data: content, language: 'en' }] }
-              : s
-          )
+        const result = await response.json();
+        setSections((prevSections: typeof sections) =>
+          prevSections.map((s) => {
+            if (s.id === sectionId) {
+              const existingContent = s.content[0];
+              if (existingContent) {
+                return {
+                  ...s,
+                  content: [{
+                    ...existingContent,
+                    data: result.content as Prisma.JsonValue,
+                    generatedAt: new Date(),
+                    version: existingContent.version + 1
+                  }]
+                };
+              } else {
+                return {
+                  ...s,
+                  content: [{
+                    id: result.id || `temp-${Date.now()}`,
+                    data: result.content as Prisma.JsonValue,
+                    sectionId: sectionId,
+                    language: 'en',
+                    imageUrls: result.imageUrls || [],
+                    generatedBy: 'gemini-2.5-pro',
+                    generatedAt: new Date(),
+                    version: 1
+                  }]
+                };
+              }
+            }
+            return s;
+          })
         );
         toast.success('Content regenerated successfully', { id: sectionId });
       } else {
         throw new Error('Failed to regenerate content');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to regenerate content', { id: sectionId });
     }
   };
 
   const handleAddSection = async (templateId: string) => {
+    if (!homePage) {
+      toast.error('No page found to add section to');
+      return;
+    }
+    
     try {
       toast.loading('Adding section...', { id: 'add-section' });
 
@@ -150,15 +240,20 @@ export function EditorClient({ site, homePage }: EditorClientProps) {
       } else {
         throw new Error('Failed to add section');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to add section', { id: 'add-section' });
     }
   };
 
   const handleSaveOrder = async () => {
+    if (!homePage) {
+      toast.error('No page found to save order for');
+      return;
+    }
+    
     setIsSaving(true);
     try {
-      const updates = sections.map((section: any, index: number) => ({
+      const updates = sections.map((section, index) => ({
         id: section.id,
         order: index,
       }));
@@ -174,7 +269,7 @@ export function EditorClient({ site, homePage }: EditorClientProps) {
       } else {
         throw new Error('Failed to save order');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to save order');
     } finally {
       setIsSaving(false);
@@ -182,6 +277,11 @@ export function EditorClient({ site, homePage }: EditorClientProps) {
   };
 
   const handleGenerateAllContent = async () => {
+    if (!homePage) {
+      toast.error('No page found to generate content for');
+      return;
+    }
+    
     if (!confirm('This will regenerate content for all sections. Continue?')) return;
 
     setIsGenerating(true);
@@ -201,7 +301,7 @@ export function EditorClient({ site, homePage }: EditorClientProps) {
       } else {
         throw new Error('Failed to generate content');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to generate content');
     } finally {
       setIsGenerating(false);
@@ -209,7 +309,7 @@ export function EditorClient({ site, homePage }: EditorClientProps) {
   };
 
   const handlePreviewSection = (sectionId: string) => {
-    const section = sections.find((s: any) => s.id === sectionId);
+    const section = sections.find((s) => s.id === sectionId);
     if (section) {
       // Open preview in new tab with section highlighted
       window.open(`${siteUrl}#section-${section.template.name}`, '_blank');
@@ -246,17 +346,17 @@ export function EditorClient({ site, homePage }: EditorClientProps) {
               onDragEnd={handleDragEnd}
             >
               <SortableContext
-                items={sections.map((s: any) => s.id)}
+                items={sections.map((s) => s.id)}
                 strategy={verticalListSortingStrategy}
               >
                 <div className="space-y-4">
-                  {sections.map((section: any) => (
+                  {sections.map((section) => (
                     <SectionCard
                       key={section.id}
                       section={section}
                       onEdit={(sectionId) => {
-                        const sectionToEdit = sections.find((s: any) => s.id === sectionId);
-                        setEditingSection(sectionToEdit);
+                        const sectionToEdit = sections.find((s) => s.id === sectionId);
+                        setEditingSection(sectionToEdit || null);
                       }}
                       onDelete={handleDeleteSection}
                       onRegenerate={handleRegenerateSection}

@@ -83,9 +83,9 @@ export const deploymentWorker = new Worker<DeploymentData>(
       await prisma.deployment.update({
         where: { id: deploymentId },
         data: {
-          status: 'COMPLETED',
+          status: 'SUCCESS',
           completedAt: new Date(),
-          deploymentUrl,
+          url: deploymentUrl,
           metadata: {
             environment,
             buildTime: 7000,

@@ -5,7 +5,7 @@ import { ChevronLeft } from 'lucide-react';
 
 interface SiteDetailsFormProps {
   siteType: 'CITY' | 'ATTRACTION';
-  onSubmit: (details: any) => void;
+  onSubmit: (details: { name: string; subdomain: string; languages: string[]; defaultLanguage: string; locationContext: string }) => void;
   onBack: () => void;
 }
 

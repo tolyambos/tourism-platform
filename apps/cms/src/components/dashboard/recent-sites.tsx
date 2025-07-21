@@ -6,7 +6,7 @@ interface Site {
   name: string;
   subdomain: string;
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
-  type: 'CITY' | 'ATTRACTION';
+  type: 'CITY' | 'ATTRACTION' | 'REGION' | 'CUSTOM';
   createdAt: Date;
 }
 
@@ -70,7 +70,11 @@ export function RecentSites({ sites }: RecentSitesProps) {
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         site.type === 'CITY' 
                           ? 'bg-blue-100 text-blue-800' 
-                          : 'bg-green-100 text-green-800'
+                          : site.type === 'ATTRACTION'
+                          ? 'bg-green-100 text-green-800'
+                          : site.type === 'REGION'
+                          ? 'bg-purple-100 text-purple-800'
+                          : 'bg-gray-100 text-gray-800'
                       }`}>
                         {site.type}
                       </span>

@@ -14,7 +14,7 @@ export async function POST(
   }
   
   const { sectionId } = await params;
-  const { siteId } = await request.json();
+  await request.json();
   
   try {
     // Get section with template and site info
@@ -39,12 +39,22 @@ export async function POST(
       apiKey: process.env.GEMINI_API_KEY!
     });
 
-    const content = await generator.generateContent({
-      siteId: siteId,
+    const site = section.page.site;
+    const locationContext = (site.features as Record<string, unknown>)?.locationContext || site.name;
+
+    const result = await generator.generateSectionContent({
+      section: section,
       template: section.template,
-      siteType: section.page.site.type,
-      language: section.page.site.defaultLanguage
+      context: {
+        siteName: site.name,
+        siteType: site.type.toLowerCase(),
+        locationContext,
+        language: site.defaultLanguage
+      },
+      languages: [site.defaultLanguage]
     });
+
+    const content = result.contents[0]?.content.data;
 
     // Update or create content
     const existingContent = await prisma.sectionContent.findFirst({

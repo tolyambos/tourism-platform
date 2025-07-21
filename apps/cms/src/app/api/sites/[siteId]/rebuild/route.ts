@@ -4,7 +4,7 @@ import { prisma } from '@tourism/database';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { siteId: string } }
+  { params }: { params: Promise<{ siteId: string }> }
 ) {
   const user = await currentUser();
   
@@ -12,7 +12,7 @@ export async function POST(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   
-  const { siteId } = params;
+  const { siteId } = await params;
   
   try {
     // Get the site
@@ -78,15 +78,12 @@ export async function POST(
       }))
     });
     
-    // Get location context from site features
-    const locationContext = (site.features as any)?.locationContext || site.name;
     
     // Queue content generation for the new sections
     const { contentGenerationQueue } = await import('@/lib/queues');
     await contentGenerationQueue.add('generate-content', {
       siteId: site.id,
       pageId: homePage.id,
-      locationContext,
       regenerate: true
     });
     

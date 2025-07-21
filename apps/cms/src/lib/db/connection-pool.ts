@@ -1,4 +1,4 @@
-import { PrismaClient } from '@tourism/database';
+import { PrismaClient, Prisma } from '@tourism/database';
 
 declare global {
   var prisma: PrismaClient | undefined;
@@ -11,7 +11,7 @@ export const prismaOptions = {
       url: process.env.DATABASE_URL
     }
   },
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error']
+  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] as Prisma.LogLevel[] : ['error'] as Prisma.LogLevel[]
 };
 
 // Create a singleton instance with connection pooling

@@ -10,7 +10,11 @@ import { Template } from '@tourism/database';
 
 interface TemplateEditorProps {
   template: Template;
-  promptData: any;
+  promptData: {
+    systemInstruction?: string;
+    userPromptExample?: string;
+    responseSchema?: unknown;
+  } | null;
 }
 
 export function TemplateEditor({ template, promptData }: TemplateEditorProps) {
@@ -24,7 +28,7 @@ export function TemplateEditor({ template, promptData }: TemplateEditorProps) {
     name: template.name,
     componentName: template.componentName,
     isActive: template.isActive,
-    schema: promptData?.responseSchema || template.schema || {},
+    schema: (promptData?.responseSchema || template.schema || {}) as Record<string, unknown>,
     systemPrompt: template.systemPrompt || promptData?.systemInstruction || '',
     userPromptTemplate: template.userPromptTemplate || promptData?.userPromptExample || ''
   });
@@ -60,8 +64,7 @@ export function TemplateEditor({ template, promptData }: TemplateEditorProps) {
       } else {
         alert('Failed to save template');
       }
-    } catch (error) {
-      console.error('Error saving template:', error);
+    } catch {
       alert('Error saving template');
     } finally {
       setIsSaving(false);
@@ -225,7 +228,7 @@ export function TemplateEditor({ template, promptData }: TemplateEditorProps) {
                     try {
                       const parsed = JSON.parse(e.target.value);
                       setFormData({ ...formData, schema: parsed });
-                    } catch (error) {
+                    } catch {
                       // Invalid JSON, just update the text
                       // You might want to show an error message here
                     }
@@ -243,7 +246,7 @@ export function TemplateEditor({ template, promptData }: TemplateEditorProps) {
                       try {
                         const formatted = JSON.stringify(JSON.parse(JSON.stringify(formData.schema)), null, 2);
                         setFormData({ ...formData, schema: JSON.parse(formatted) });
-                      } catch (error) {
+                      } catch {
                         alert('Invalid JSON format');
                       }
                     }}
@@ -252,18 +255,18 @@ export function TemplateEditor({ template, promptData }: TemplateEditorProps) {
                     Format JSON
                   </button>
                 </div>
-                {promptData?.responseSchema && (
+                {promptData?.responseSchema ? (
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, schema: promptData.responseSchema })}
+                    onClick={() => setFormData({ ...formData, schema: promptData.responseSchema as Record<string, unknown> })}
                     className="inline-flex items-center px-3 py-1.5 border border-indigo-300 shadow-sm text-xs font-medium rounded-md text-indigo-700 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
                     Reset to Original
                   </button>
-                )}
+                ) : null}
               </div>
               
-              {promptData?.responseSchema && (
+              {promptData?.responseSchema ? (
                 <div className="mt-4 p-4 bg-blue-50 rounded-lg">
                   <p className="text-sm text-blue-800">
                     <strong>Note:</strong> The original schema is defined in:
@@ -273,7 +276,7 @@ export function TemplateEditor({ template, promptData }: TemplateEditorProps) {
                     </code>
                   </p>
                 </div>
-              )}
+              ) : null}
             </div>
           )}
           
@@ -293,7 +296,7 @@ export function TemplateEditor({ template, promptData }: TemplateEditorProps) {
                 {promptData?.systemInstruction && (
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, systemPrompt: promptData.systemInstruction })}
+                    onClick={() => setFormData({ ...formData, systemPrompt: promptData.systemInstruction || '' })}
                     className="mt-2 text-sm text-indigo-600 hover:text-indigo-500"
                   >
                     Reset to original
@@ -315,7 +318,7 @@ export function TemplateEditor({ template, promptData }: TemplateEditorProps) {
                 {promptData?.userPromptExample && (
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, userPromptTemplate: promptData.userPromptExample })}
+                    onClick={() => setFormData({ ...formData, userPromptTemplate: promptData.userPromptExample || '' })}
                     className="mt-2 text-sm text-indigo-600 hover:text-indigo-500"
                   >
                     Reset to original

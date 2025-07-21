@@ -54,11 +54,11 @@ export async function POST(
       apiKey: process.env.GEMINI_API_KEY!
     });
     
-    const locationContext = (site.features as any)?.locationContext || site.name;
+    const locationContext = (site.features as Record<string, unknown>)?.locationContext || site.name;
     
     for (const section of sections) {
       const result = await generator.generateSectionContent({
-        section: section as any,
+        section: section,
         template: section.template,
         context: {
           siteName: site.name,

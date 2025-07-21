@@ -49,7 +49,7 @@ export async function POST(
     
     // Find sections to remove (not in the correct list)
     const sectionsToRemove = homePage.sections.filter(section => 
-      !correctTemplateNames.includes(section.template.name)
+      !correctTemplateNames.includes(section.template.name as (typeof correctTemplateNames)[number])
     );
     
     // Delete incorrect sections and their content

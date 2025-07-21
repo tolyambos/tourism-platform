@@ -33,7 +33,7 @@ export default function CreateSitePage() {
     setCurrentStep(2);
   };
 
-  const handleDetailsSubmit = async (details: any) => {
+  const handleDetailsSubmit = async (details: { name: string; subdomain: string; languages: string[]; defaultLanguage: string }) => {
     setSiteData({ ...siteData, ...details });
     
     // Create site in database

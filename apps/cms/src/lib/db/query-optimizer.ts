@@ -1,4 +1,4 @@
-import { Prisma } from '@tourism/database';
+import { Prisma, Status } from '@tourism/database';
 
 export class QueryOptimizer {
   // Optimize site queries with selective field loading
@@ -98,7 +98,7 @@ export class QueryOptimizer {
     const where: Prisma.SiteWhereInput = {};
     
     if (status) {
-      where.status = status as any;
+      where.status = status as Status;
     }
     
     if (search) {
@@ -132,8 +132,14 @@ export class QueryOptimizer {
   }
   
   // Use raw queries for complex aggregations
-  static async getSiteAnalytics(siteId: string, prisma: any) {
-    const result = await prisma.$queryRaw`
+  static async getSiteAnalytics(siteId: string, prisma: typeof import('@tourism/database').prisma) {
+    const result = await prisma.$queryRaw<Array<{
+      total_pages: bigint;
+      total_sections: bigint;
+      total_content_items: bigint;
+      successful_deployments: bigint;
+      last_deployment: Date | null;
+    }>>`
       SELECT 
         COUNT(DISTINCT p.id) as total_pages,
         COUNT(DISTINCT s.id) as total_sections,
@@ -155,7 +161,7 @@ export class QueryOptimizer {
   static getRecentDeployments(siteId: string, limit = 5) {
     return {
       where: { siteId },
-      orderBy: { createdAt: 'desc' as const },
+      orderBy: { startedAt: 'desc' as const },
       take: limit,
       select: {
         id: true,

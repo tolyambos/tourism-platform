@@ -84,11 +84,11 @@ export const deploymentsBySiteLoader = new DataLoader(
   async (siteIds: readonly string[]) => {
     const deployments = await prisma.deployment.findMany({
       where: { siteId: { in: [...siteIds] } },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { startedAt: 'desc' },
       take: 100 // Limit total results
     });
     
-    const deploymentsBySite = new Map<string, any[]>();
+    const deploymentsBySite = new Map<string, typeof deployments>();
     deployments.forEach(deployment => {
       const siteDeployments = deploymentsBySite.get(deployment.siteId) || [];
       if (siteDeployments.length < 5) { // Only keep 5 most recent per site

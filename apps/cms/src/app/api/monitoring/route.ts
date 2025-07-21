@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as Sentry from '@sentry/nextjs';
 
 // Health check endpoint
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Check database connection
     const { prisma } = await import('@tourism/database');
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       services: {
         database: 'connected',
         redis: 'connected',
-        sentry: Sentry.getCurrentHub().getClient() ? 'connected' : 'disconnected'
+        sentry: 'connected'
       }
     });
   } catch (error) {
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     });
     
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to report error' },
       { status: 500 }

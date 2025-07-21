@@ -36,7 +36,7 @@ async function getPromptDataForTemplate(templateName: string) {
     const prompts = await import('@tourism/ai-engine/src/gemini/section-prompts');
     
     // Map template names to prompt exports
-    const promptMap: Record<string, any> = {
+    const promptMap: Record<string, { systemInstruction: string; userPrompt?: (attraction: string, location: string) => string; responseSchema: unknown }> = {
       'attraction-hero': prompts.attractionHeroPrompt,
       'quick-info-bar': prompts.quickInfoBarPrompt,
       'product-cards': prompts.productCardsPrompt,
@@ -54,7 +54,7 @@ async function getPromptDataForTemplate(templateName: string) {
     return {
       systemInstruction: promptData.systemInstruction,
       userPromptExample: promptData.userPrompt ? 
-        promptData.userPrompt('${attraction}', '${location}') : null,
+        promptData.userPrompt('${attraction}', '${location}') : undefined,
       responseSchema: promptData.responseSchema
     };
   } catch (error) {

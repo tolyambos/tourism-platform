@@ -17,7 +17,7 @@ export async function GET() {
     // Check database connection
     await prisma.$queryRaw`SELECT 1`;
     checks.checks.database = 'healthy';
-  } catch (error) {
+  } catch {
     checks.checks.database = 'unhealthy';
     checks.status = 'unhealthy';
   }
@@ -26,7 +26,7 @@ export async function GET() {
     // Check Redis connection
     await redis.ping();
     checks.checks.redis = 'healthy';
-  } catch (error) {
+  } catch {
     checks.checks.redis = 'unhealthy';
     checks.status = 'unhealthy';
   }
@@ -38,7 +38,7 @@ export async function GET() {
     } else {
       checks.checks.auth = 'unconfigured';
     }
-  } catch (error) {
+  } catch {
     checks.checks.auth = 'unhealthy';
   }
   

@@ -29,7 +29,7 @@ export async function POST(
     const deploymentUrl = site.domain || `https://${site.subdomain}.tourism-platform.com`;
     
     // Create deployment record
-    const deployment = await prisma.deployment.create({
+    await prisma.deployment.create({
       data: {
         siteId: site.id,
         status: 'SUCCESS',

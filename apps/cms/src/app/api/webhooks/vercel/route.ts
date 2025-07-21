@@ -76,15 +76,15 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handleDeploymentCreated(event: any) {
+async function handleDeploymentCreated(event: { payload: { deployment: Record<string, unknown>; project: Record<string, unknown> } }) {
   const { deployment, project } = event.payload;
   
   // Find site by project name or metadata
   const site = await prisma.site.findFirst({
     where: {
       OR: [
-        { subdomain: project.name },
-        { metadata: { path: ['vercelProjectId'], equals: project.id } }
+        { subdomain: project.name as string },
+        { metadata: { path: ['vercelProjectId'], equals: project.id as string } }
       ]
     }
   });
@@ -94,26 +94,26 @@ async function handleDeploymentCreated(event: any) {
       data: {
         siteId: site.id,
         status: 'BUILDING',
-        environment: deployment.target || 'production',
-        deploymentUrl: deployment.url,
+        environment: ((deployment.target as string || 'production').toUpperCase() === 'PREVIEW' ? 'STAGING' : 'PRODUCTION') as 'STAGING' | 'PRODUCTION',
+        url: deployment.url as string,
         metadata: {
-          vercelDeploymentId: deployment.id,
-          vercelProjectId: project.id,
-          creator: deployment.creator?.email
+          vercelDeploymentId: deployment.id as string,
+          vercelProjectId: project.id as string,
+          creator: (deployment.creator as Record<string, unknown>)?.email as string
         }
       }
     });
   }
 }
 
-async function handleDeploymentSucceeded(event: any) {
+async function handleDeploymentSucceeded(event: { payload: { deployment: Record<string, unknown> } }) {
   const { deployment } = event.payload;
   
   const deploymentRecord = await prisma.deployment.findFirst({
     where: {
       metadata: {
         path: ['vercelDeploymentId'],
-        equals: deployment.id
+        equals: deployment.id as string
       }
     }
   });
@@ -122,13 +122,13 @@ async function handleDeploymentSucceeded(event: any) {
     await prisma.deployment.update({
       where: { id: deploymentRecord.id },
       data: {
-        status: 'COMPLETED',
+        status: 'SUCCESS',
         completedAt: new Date(),
-        deploymentUrl: deployment.url,
+        url: deployment.url as string,
         metadata: {
-          ...deploymentRecord.metadata as any,
+          ...deploymentRecord.metadata as Record<string, unknown>,
           buildTime: deployment.buildingAt 
-            ? new Date().getTime() - new Date(deployment.buildingAt).getTime()
+            ? new Date().getTime() - new Date(deployment.buildingAt as string).getTime()
             : null
         }
       }
@@ -136,14 +136,14 @@ async function handleDeploymentSucceeded(event: any) {
   }
 }
 
-async function handleDeploymentFailed(event: any) {
+async function handleDeploymentFailed(event: { payload: { deployment: Record<string, unknown> } }) {
   const { deployment } = event.payload;
   
   const deploymentRecord = await prisma.deployment.findFirst({
     where: {
       metadata: {
         path: ['vercelDeploymentId'],
-        equals: deployment.id
+        equals: deployment.id as string
       }
     }
   });
@@ -154,20 +154,20 @@ async function handleDeploymentFailed(event: any) {
       data: {
         status: 'FAILED',
         completedAt: new Date(),
-        error: deployment.errorMessage || 'Deployment failed'
+        error: (deployment.errorMessage as string) || 'Deployment failed'
       }
     });
   }
 }
 
-async function handleDeploymentCanceled(event: any) {
+async function handleDeploymentCanceled(event: { payload: { deployment: Record<string, unknown> } }) {
   const { deployment } = event.payload;
   
   const deploymentRecord = await prisma.deployment.findFirst({
     where: {
       metadata: {
         path: ['vercelDeploymentId'],
-        equals: deployment.id
+        equals: deployment.id as string
       }
     }
   });

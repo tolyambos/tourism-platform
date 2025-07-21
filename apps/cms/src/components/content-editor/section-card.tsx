@@ -3,12 +3,12 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Edit, Trash2, Sparkles, Eye } from 'lucide-react';
-import { Section } from '@tourism/database';
+import { Section, Prisma } from '@tourism/database';
 
 interface SectionCardProps {
   section: Section & {
     template: { name: string; category: string };
-    content: { data: any; language: string }[];
+    content: { data: Prisma.JsonValue; language: string }[];
   };
   onEdit: (sectionId: string) => void;
   onDelete: (sectionId: string) => void;
@@ -45,13 +45,20 @@ export function SectionCard({
   };
 
   const getContentPreview = () => {
-    const content = section.content[0]?.data;
-    if (!content) return 'No content generated yet';
+    const contentData = section.content[0]?.data;
+    if (!contentData || contentData === null) return 'No content generated yet';
+    
+    // Type guard to ensure it's an object
+    if (typeof contentData !== 'object' || Array.isArray(contentData)) {
+      return 'Content available';
+    }
+    
+    const content = contentData as Record<string, unknown>;
     
     // Extract preview text based on template type
-    if (content.title) return content.title;
-    if (content.heading) return content.heading;
-    if (content.text) return content.text.substring(0, 100) + '...';
+    if (content.title && typeof content.title === 'string') return content.title;
+    if (content.heading && typeof content.heading === 'string') return content.heading;
+    if (content.text && typeof content.text === 'string') return content.text.substring(0, 100) + '...';
     if (content.items && Array.isArray(content.items)) {
       return `${content.items.length} items`;
     }

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 interface RebuildSiteButtonProps {
   siteId: string;
-  siteType: 'CITY' | 'ATTRACTION';
+  siteType: 'CITY' | 'ATTRACTION' | 'REGION' | 'CUSTOM';
 }
 
 export function RebuildSiteButton({ siteId, siteType }: RebuildSiteButtonProps) {
@@ -64,6 +64,10 @@ export function RebuildSiteButton({ siteId, siteType }: RebuildSiteButtonProps) 
         <p className="text-sm text-gray-500">
           {siteType === 'ATTRACTION' 
             ? 'Update to new attraction layout' 
+            : siteType === 'CITY'
+            ? 'Refresh with latest city templates'
+            : siteType === 'REGION'
+            ? 'Update regional content templates'
             : 'Refresh with latest templates'
           }
         </p>

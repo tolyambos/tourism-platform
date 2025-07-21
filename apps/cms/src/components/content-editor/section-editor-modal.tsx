@@ -1,14 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Save, Sparkles } from 'lucide-react';
+import { X, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface SectionEditorModalProps {
   isOpen: boolean;
-  section: any;
+  section: {
+    id: string;
+    template: {
+      name: string;
+      category: string;
+    };
+    content?: Array<{ data: unknown; language: string }>;
+  } | null;
   onClose: () => void;
-  onSave: (sectionId: string, content: any) => void;
+  onSave: (sectionId: string, content: unknown) => void;
 }
 
 export function SectionEditorModal({
@@ -49,7 +56,7 @@ export function SectionEditorModal({
       onSave(section.id, parsedContent);
       toast.success('Content saved successfully');
       onClose();
-    } catch (error) {
+    } catch {
       toast.error('Failed to save content');
     }
   };
