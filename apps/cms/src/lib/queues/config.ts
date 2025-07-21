@@ -1,12 +1,22 @@
 import IORedis from 'ioredis';
 
-// Redis connection
-export const redis = new IORedis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  password: process.env.REDIS_PASSWORD,
-  maxRetriesPerRequest: null,
-  enableReadyCheck: false
+// Redis connection - lazy initialization to avoid connection errors at startup
+let redisInstance: IORedis | null = null;
+
+export const redis = new Proxy({} as IORedis, {
+  get(target, prop) {
+    if (!redisInstance) {
+      redisInstance = new IORedis({
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379'),
+        password: process.env.REDIS_PASSWORD,
+        maxRetriesPerRequest: null,
+        enableReadyCheck: false,
+        lazyConnect: true
+      });
+    }
+    return (redisInstance as any)[prop];
+  }
 });
 
 // Queue configuration
