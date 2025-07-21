@@ -32,7 +32,7 @@ export async function GET() {
     return NextResponse.json({ error: 'Site or home page not found' });
   }
   
-  const sections = site.pages[0].sections.map(section => ({
+  const sections = site.pages[0].sections.map((section: any) => ({
     id: section.id,
     templateId: section.templateId,
     hasTemplate: !!section.template,

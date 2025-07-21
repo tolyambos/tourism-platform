@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd apps/website-template && pnpm build",
+  "buildCommand": "cd ../.. && pnpm db:generate && cd apps/website-template && pnpm build",
   "outputDirectory": "apps/website-template/.next",
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": "nextjs",

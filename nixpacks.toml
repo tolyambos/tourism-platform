@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["nodejs-18_x", "pnpm-8"]
+
+[phases.install]
+cmds = ["pnpm install --frozen-lockfile"]
+
+[phases.build]
+cmds = ["pnpm db:generate", "pnpm build:cms"]
+
+[start]
+cmd = "cd apps/cms && pnpm start"

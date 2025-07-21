@@ -78,13 +78,13 @@ export function mergeWithDefaults<T extends Record<string, any>>(
 ): T {
   if (!providedContent) return defaultContent;
   
-  const result = { ...defaultContent };
+  const result: any = { ...defaultContent };
   
   Object.keys(providedContent).forEach(key => {
-    const value = providedContent[key];
+    const value = (providedContent as any)[key];
     if (value !== undefined && value !== null) {
       if (typeof value === 'object' && !Array.isArray(value) && value.constructor === Object) {
-        result[key] = mergeWithDefaults(defaultContent[key] || {}, value);
+        result[key] = mergeWithDefaults((defaultContent as any)[key] || {}, value);
       } else {
         result[key] = value;
       }

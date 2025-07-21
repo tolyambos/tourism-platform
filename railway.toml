@@ -1,6 +1,7 @@
 [build]
 builder = "nixpacks"
-buildCommand = "pnpm install --frozen-lockfile && pnpm build:cms"
+buildCommand = "pnpm install --frozen-lockfile && pnpm db:generate && pnpm build:cms"
+nixpacksConfigPath = "nixpacks.toml"
 
 [deploy]
 startCommand = "pnpm start:cms"
