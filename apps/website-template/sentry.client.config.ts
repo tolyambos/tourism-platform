@@ -20,10 +20,7 @@ Sentry.init({
   
   // Integrations
   integrations: [
-    Sentry.replayIntegration({
-      maskAllText: true, // Privacy for public website
-      blockAllMedia: false,
-    }),
+    // Replay integration is now configured differently in newer versions
   ],
   
   // Filtering

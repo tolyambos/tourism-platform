@@ -13,10 +13,4 @@ Sentry.init({
   
   // Environment
   environment: process.env.NEXT_PUBLIC_VERCEL_ENV || 'development',
-  
-  // Integrations
-  integrations: [
-    // Automatically instrument Node.js libraries and frameworks
-    ...Sentry.autoDiscoverNodePerformanceMonitoringIntegrations(),
-  ],
 });
