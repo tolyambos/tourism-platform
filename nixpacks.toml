@@ -2,14 +2,19 @@
 nixPkgs = ["nodejs-18_x"]
 
 [phases.install]
-cmds = ["npm install -g pnpm@8", "pnpm install --frozen-lockfile"]
-cacheDirectories = ["/root/.local/share/pnpm/store"]
+cmds = [
+    "npm install -g pnpm@8",
+    "npx pnpm install --frozen-lockfile"
+]
 
 [phases.build]
-cmds = ["pnpm db:generate", "pnpm build:cms"]
+cmds = [
+    "npx pnpm db:generate",
+    "npx pnpm build:cms"
+]
 
 [start]
-cmd = "cd apps/cms && pnpm start"
+cmd = "cd apps/cms && npx pnpm start"
 
 [variables]
 NIXPACKS_NODE_VERSION = "18"
