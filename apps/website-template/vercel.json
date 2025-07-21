@@ -1,0 +1,65 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "cd ../.. && pnpm build:website",
+  "devCommand": "pnpm dev",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "outputDirectory": ".next",
+  "regions": ["iad1"],
+  "functions": {
+    "app/api/revalidate/route.ts": {
+      "maxDuration": 10
+    },
+    "app/[locale]/page.tsx": {
+      "maxDuration": 30
+    },
+    "app/[locale]/[...slug]/page.tsx": {
+      "maxDuration": 30
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "(?<subdomain>.*)\\.tourism-platform\\.com"
+        }
+      ],
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "s-maxage=86400, stale-while-revalidate=59"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "(?<subdomain>[^.]+)\\.tourism-platform\\.com"
+        }
+      ],
+      "destination": "/:path*?subdomain=:subdomain"
+    }
+  ]
+}

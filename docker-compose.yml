@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tourism_platform_db
+    restart: unless-stopped
+    ports:
+      - "5436:5432"  # Using port 5436 to avoid conflicts
+    environment:
+      POSTGRES_USER: tourism_admin
+      POSTGRES_PASSWORD: tourism_local_2024
+      POSTGRES_DB: tourism_platform
+    volumes:
+      - tourism_platform_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tourism_admin -d tourism_platform"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  tourism_platform_data:

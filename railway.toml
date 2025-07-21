@@ -1,0 +1,22 @@
+[build]
+builder = "nixpacks"
+buildCommand = "pnpm install --frozen-lockfile && pnpm build:cms"
+
+[deploy]
+startCommand = "pnpm start:cms"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+
+[[services]]
+name = "cms"
+source = "apps/cms"
+runtime = "node"
+
+[[services.domains]]
+domain = "tourism-cms.up.railway.app"
+
+[services.envs]
+NODE_ENV = "production"
+PORT = "3000"

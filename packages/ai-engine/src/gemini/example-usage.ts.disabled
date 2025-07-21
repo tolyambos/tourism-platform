@@ -1,0 +1,173 @@
+// Example usage of the Gemini section prompts
+// To run: npm install @google/genai
+
+import { GoogleGenAI } from '@google/genai';
+import {
+  attractionHeroPrompt,
+  quickInfoBarPrompt,
+  productCardsPrompt,
+  tabbedInfoPrompt,
+  reviewsCarouselPrompt,
+  faqAccordionPrompt,
+  finalCTAPrompt,
+  generateAllSections
+} from './section-prompts';
+
+async function generateSingleSection() {
+  const ai = new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY!,
+  });
+
+  // Example: Generate AttractionHero content for Prague Zoo
+  const attraction = "Prague Zoo";
+  const location = "Prague, Czech Republic";
+
+  const config = {
+    responseMimeType: 'application/json',
+    responseSchema: attractionHeroPrompt.responseSchema,
+    systemInstruction: [
+      {
+        text: attractionHeroPrompt.systemInstruction
+      }
+    ]
+  };
+
+  const model = 'gemini-2.0-flash-exp';
+  const contents = [
+    {
+      role: 'user',
+      parts: [
+        {
+          text: attractionHeroPrompt.userPrompt(attraction, location)
+        }
+      ]
+    }
+  ];
+
+  try {
+    const response = await ai.models.generateContent({
+      model,
+      config,
+      contents,
+    });
+
+    const result = JSON.parse(response.text);
+    console.log('Generated AttractionHero content:', JSON.stringify(result, null, 2));
+    return result;
+  } catch (error) {
+    console.error('Error generating content:', error);
+  }
+}
+
+async function generateAllSectionsExample() {
+  const ai = new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY!,
+  });
+
+  const attraction = "Prague Zoo";
+  const location = "Prague, Czech Republic";
+
+  try {
+    const allSections = await generateAllSections(attraction, location, ai);
+    
+    // Save to a file or database
+    console.log('Generated all sections:', JSON.stringify(allSections, null, 2));
+    
+    // Example of how to structure for database storage
+    const pageContent = {
+      slug: 'prague-zoo-tickets',
+      title: allSections.attractionHero.mainHeadline,
+      sections: [
+        {
+          template: { componentName: 'AttractionHero' },
+          content: { data: allSections.attractionHero }
+        },
+        {
+          template: { componentName: 'QuickInfoBar' },
+          content: { data: allSections.quickInfoBar }
+        },
+        {
+          template: { componentName: 'ProductCards' },
+          content: { data: allSections.productCards }
+        },
+        {
+          template: { componentName: 'TabbedInfo' },
+          content: { data: allSections.tabbedInfo }
+        },
+        {
+          template: { componentName: 'ReviewsCarousel' },
+          content: { data: allSections.reviewsCarousel }
+        },
+        {
+          template: { componentName: 'FAQAccordion' },
+          content: { data: allSections.faqAccordion }
+        },
+        {
+          template: { componentName: 'FinalCTA' },
+          content: { data: allSections.finalCTA }
+        }
+      ]
+    };
+    
+    return pageContent;
+  } catch (error) {
+    console.error('Error generating all sections:', error);
+  }
+}
+
+// Example with streaming for better UX
+async function generateWithStreaming() {
+  const ai = new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY!,
+  });
+
+  const config = {
+    responseMimeType: 'application/json',
+    responseSchema: productCardsPrompt.responseSchema,
+    systemInstruction: [
+      {
+        text: productCardsPrompt.systemInstruction
+      }
+    ]
+  };
+
+  const model = 'gemini-2.0-flash-exp';
+  const contents = [
+    {
+      role: 'user',
+      parts: [
+        {
+          text: productCardsPrompt.userPrompt("Eiffel Tower", "Paris, France")
+        }
+      ]
+    }
+  ];
+
+  const response = await ai.models.generateContentStream({
+    model,
+    config,
+    contents,
+  });
+
+  let fullResponse = '';
+  for await (const chunk of response) {
+    fullResponse += chunk.text;
+    console.log('Streaming chunk:', chunk.text);
+  }
+
+  return JSON.parse(fullResponse);
+}
+
+// Run examples
+if (require.main === module) {
+  (async () => {
+    console.log('Generating single section...');
+    await generateSingleSection();
+    
+    console.log('\n\nGenerating all sections...');
+    await generateAllSectionsExample();
+    
+    console.log('\n\nGenerating with streaming...');
+    await generateWithStreaming();
+  })();
+}

@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@tourism/database": ["../../packages/database/src"],
+      "@tourism/database/*": ["../../packages/database/src/*"],
+      "@tourism/ui": ["../../packages/ui/src"],
+      "@tourism/ui/*": ["../../packages/ui/src/*"],
+      "@tourism/types": ["../../packages/types/src"],
+      "@tourism/types/*": ["../../packages/types/src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
