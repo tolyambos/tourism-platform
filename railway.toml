@@ -1,7 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "pnpm install --frozen-lockfile && pnpm db:generate && pnpm build:cms"
-nixpacksConfigPath = "nixpacks.toml"
+buildCommand = "./railway-build.sh"
 
 [deploy]
 startCommand = "pnpm start:cms"
