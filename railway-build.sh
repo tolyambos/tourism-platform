@@ -4,9 +4,13 @@ set -e  # Exit on error
 # Railway build script for pnpm monorepo
 echo "🚀 Starting Railway build..."
 
-# Install pnpm globally
-echo "Installing pnpm..."
-npm install -g pnpm@8
+# Check if pnpm is already installed
+if ! command -v pnpm &> /dev/null; then
+    echo "Installing pnpm..."
+    npm install -g pnpm@8
+else
+    echo "pnpm is already installed: $(pnpm --version)"
+fi
 
 # Install dependencies
 echo "Installing dependencies..."
