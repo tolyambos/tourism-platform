@@ -1,6 +1,12 @@
-import { contentGenerationQueue, contentGenerationWorker } from './content-generation.queue';
-import { deploymentQueue, deploymentWorker } from './deployment.queue';
-import { redis } from './config';
+import { 
+  contentGenerationQueue, 
+  getContentGenerationWorker 
+} from './content-generation.queue';
+import { 
+  deploymentQueue, 
+  getDeploymentWorker 
+} from './deployment.queue';
+import { createRedisConnection } from './config';
 
 // Export queues
 export { contentGenerationQueue, deploymentQueue };
@@ -18,26 +24,26 @@ export async function initializeWorkers() {
       console.log('Initializing background workers...');
       
       // Test Redis connection first
+      const redis = createRedisConnection();
+      if (!redis) {
+        console.log('Redis connection not available');
+        return;
+      }
+      
       await redis.ping();
+      console.log('Redis connection successful');
       
-      // Workers are already created in their respective files
-      // This function just ensures they're imported and running
+      // Initialize workers
+      const contentWorker = getContentGenerationWorker();
+      const deployWorker = getDeploymentWorker();
       
-      contentGenerationWorker.on('ready', () => {
-        console.log('Content generation worker ready');
-      });
+      if (contentWorker) {
+        console.log('Content generation worker initialized');
+      }
       
-      deploymentWorker.on('ready', () => {
-        console.log('Deployment worker ready');
-      });
-      
-      contentGenerationWorker.on('error', (err) => {
-        console.error('Content generation worker error:', err);
-      });
-      
-      deploymentWorker.on('error', (err) => {
-        console.error('Deployment worker error:', err);
-      });
+      if (deployWorker) {
+        console.log('Deployment worker initialized');
+      }
     } catch (error) {
       console.error('Failed to initialize workers:', error);
       console.log('Application will continue without background workers');
@@ -51,11 +57,19 @@ export async function shutdownQueues() {
     console.log('Shutting down queues...');
     
     if (process.env.REDIS_HOST || process.env.REDIS_URL) {
-      await contentGenerationWorker.close();
-      await deploymentWorker.close();
-      await contentGenerationQueue.close();
-      await deploymentQueue.close();
-      await redis.quit();
+      const contentWorker = getContentGenerationWorker();
+      const deployWorker = getDeploymentWorker();
+      const redis = createRedisConnection();
+      
+      if (contentWorker) {
+        await contentWorker.close();
+      }
+      if (deployWorker) {
+        await deployWorker.close();
+      }
+      if (redis) {
+        await redis.quit();
+      }
     }
     
     console.log('Queues shut down successfully');
