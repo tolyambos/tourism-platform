@@ -177,7 +177,7 @@ export const deploymentQueue = new Proxy({} as Queue<DeploymentData>, {
     if (!queue) {
       throw new Error('Deployment queue not available - Redis not configured');
     }
-    return (queue as any)[prop];
+    return (queue as Queue<DeploymentData>)[prop as keyof Queue<DeploymentData>];
   }
 });
 
@@ -187,6 +187,6 @@ export const deploymentWorker = new Proxy({} as Worker<DeploymentData>, {
     if (!worker) {
       throw new Error('Deployment worker not available - Redis not configured');
     }
-    return (worker as any)[prop];
+    return (worker as Worker<DeploymentData>)[prop as keyof Worker<DeploymentData>];
   }
 });

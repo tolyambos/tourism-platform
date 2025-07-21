@@ -226,7 +226,7 @@ export const contentGenerationQueue = new Proxy({} as Queue<ContentGenerationDat
     if (!queue) {
       throw new Error('Content generation queue not available - Redis not configured');
     }
-    return (queue as any)[prop];
+    return (queue as Queue<ContentGenerationData>)[prop as keyof Queue<ContentGenerationData>];
   }
 });
 
@@ -236,6 +236,6 @@ export const contentGenerationWorker = new Proxy({} as Worker<ContentGenerationD
     if (!worker) {
       throw new Error('Content generation worker not available - Redis not configured');
     }
-    return (worker as any)[prop];
+    return (worker as Worker<ContentGenerationData>)[prop as keyof Worker<ContentGenerationData>];
   }
 });
