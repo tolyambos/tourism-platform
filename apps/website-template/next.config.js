@@ -10,9 +10,7 @@ const nextConfig = {
   },
   
   // Ensure Prisma engines are included
-  experimental: {
-    serverComponentsExternalPackages: ['@prisma/client', 'prisma']
-  },
+  serverExternalPackages: ['@prisma/client', 'prisma'],
   
   webpack: (config, { isServer }) => {
     if (isServer) {
