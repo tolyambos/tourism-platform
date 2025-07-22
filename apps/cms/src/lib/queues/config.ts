@@ -5,22 +5,20 @@ let redisInstance: IORedis | null = null;
 let connectionAttempted = false;
 
 export function createRedisConnection() {
-  // Don't attempt connection during build phase
-  if (process.env.NODE_ENV === 'production' && !global.process.env.RAILWAY_DEPLOYMENT_ID) {
-    console.log('Skipping Redis connection during build phase');
-    return null;
-  }
-  
   if (!redisInstance && !connectionAttempted) {
     connectionAttempted = true;
     
-    if (process.env.REDIS_URL) {
+    // Use REDIS_PUBLIC_URL if available (for external access/builds)
+    // Otherwise fall back to REDIS_URL (which might be internal)
+    const redisUrl = process.env.REDIS_PUBLIC_URL || process.env.REDIS_URL;
+    
+    if (redisUrl) {
       try {
-        // Use REDIS_URL if available (Railway standard)
-        console.log('Connecting to Redis:', process.env.REDIS_URL.replace(/:[^:@]*@/, ':****@'));
+        // Use the determined Redis URL
+        console.log('Connecting to Redis:', redisUrl.replace(/:[^:@]*@/, ':****@'));
         
         // For Railway, use the URL directly as ioredis handles it better
-        redisInstance = new IORedis(process.env.REDIS_URL, {
+        redisInstance = new IORedis(redisUrl, {
           maxRetriesPerRequest: 3,
           enableReadyCheck: false,
           lazyConnect: true,
@@ -59,9 +57,9 @@ export function createRedisConnection() {
           }
         });
       } catch (error) {
-        console.error('Error parsing Redis URL:', error);
+        console.error('Error creating Redis connection:', error);
         // Fall back to direct URL if parsing fails
-        redisInstance = new IORedis(process.env.REDIS_URL, {
+        redisInstance = new IORedis(redisUrl, {
           maxRetriesPerRequest: 3,
           enableReadyCheck: false,
           lazyConnect: true,
