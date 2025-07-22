@@ -59,7 +59,9 @@ describe("Sites API", () => {
         },
       ];
 
-      vi.mocked(prisma.site.findMany).mockResolvedValue(mockSites as ReturnType<typeof prisma.site.findMany>);
+      vi.mocked(prisma.site.findMany).mockResolvedValue(
+        mockSites as ReturnType<typeof prisma.site.findMany>
+      );
       vi.mocked(prisma.site.count).mockResolvedValue(2);
 
       const request = new NextRequest(
@@ -140,7 +142,9 @@ describe("Sites API", () => {
       };
 
       vi.mocked(prisma.site.findUnique).mockResolvedValue(null);
-      vi.mocked(prisma.site.create).mockResolvedValue(mockSite as Awaited<ReturnType<typeof prisma.site.create>>);
+      vi.mocked(prisma.site.create).mockResolvedValue(
+        mockSite as Awaited<ReturnType<typeof prisma.site.create>>
+      );
 
       const request = new NextRequest("http://localhost:3000/api/sites", {
         method: "POST",
