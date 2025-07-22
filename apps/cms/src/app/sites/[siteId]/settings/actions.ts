@@ -32,7 +32,7 @@ export async function updateSiteSettings(siteId: string, formData: FormData) {
       name,
       subdomain,
       domain: domain || null,
-      status: status as any,
+      status: status as 'DRAFT' | 'PUBLISHED' | 'MAINTENANCE',
       defaultLanguage,
       languages,
       seoSettings: {
