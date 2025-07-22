@@ -210,7 +210,7 @@ export default async function SiteSettingsPage({ params }: PageProps) {
                   >
                     <option value="DRAFT">Draft</option>
                     <option value="PUBLISHED">Published</option>
-                    <option value="MAINTENANCE">Maintenance</option>
+                    <option value="ARCHIVED">Archived</option>
                   </select>
                   <p className="mt-1 text-sm text-gray-500">
                     Control whether your site is accessible to visitors
