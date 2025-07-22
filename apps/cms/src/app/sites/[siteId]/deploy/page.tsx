@@ -41,7 +41,8 @@ export default async function DeploymentCenterPage({ params }: PageProps) {
     notFound();
   }
 
-  const siteUrl = site.domain || `https://${site.subdomain}.tourism-platform.com`;
+  const vercelAppUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://tourism-platform-website-template.vercel.app';
+  const siteUrl = `${vercelAppUrl}/en?subdomain=${site.subdomain}`;
   const hasContent = site.pages.some(p => p._count.sections > 0);
 
   return (

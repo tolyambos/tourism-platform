@@ -24,9 +24,9 @@ export async function POST(
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
     
-    // In a real implementation, this would trigger a Vercel deployment
-    // For now, we'll simulate it
-    const deploymentUrl = site.domain || `https://${site.subdomain}.tourism-platform.com`;
+    // Get the actual Vercel deployment URL
+    const vercelAppUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://tourism-platform-website-template.vercel.app';
+    const deploymentUrl = `${vercelAppUrl}/en?subdomain=${site.subdomain}`;
     
     // Create deployment record
     await prisma.deployment.create({
@@ -56,6 +56,11 @@ export async function POST(
       where: { siteId },
       data: { status: 'PUBLISHED' }
     });
+    
+    // Log deployment info
+    console.log(`Site deployed: ${site.subdomain}`);
+    console.log(`Accessible at: ${deploymentUrl}`);
+    console.log(`Note: This updates the database only. The Vercel app reads from this database.`);
     
     // Trigger revalidation on the website template
     if (process.env.WEBSITE_REVALIDATION_URL) {

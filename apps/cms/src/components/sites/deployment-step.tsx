@@ -32,7 +32,8 @@ export function DeploymentStep({ siteId, onComplete, onBack }: DeploymentStepPro
       // Simulate deployment time
       await new Promise(resolve => setTimeout(resolve, 3000));
       
-      setDeploymentUrl(url || `https://${siteId}.tourism-platform.com`);
+      // Use the URL from the API response (which now returns the correct Vercel URL)
+      setDeploymentUrl(url);
       setDeploymentStatus('success');
     } catch (error) {
       console.error('Deployment error:', error);
@@ -146,6 +147,12 @@ export function DeploymentStep({ siteId, onComplete, onBack }: DeploymentStepPro
             </div>
 
             <div className="border-t pt-4 mt-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-blue-800">
+                  <strong>Note:</strong> Your site is now published to the database. The Vercel-hosted website 
+                  reads from this database and will display your content at the URL above.
+                </p>
+              </div>
               <h4 className="text-sm font-medium text-gray-700 mb-2">Next Steps</h4>
               <ul className="space-y-2 text-sm text-gray-600">
                 <li className="flex items-start">
