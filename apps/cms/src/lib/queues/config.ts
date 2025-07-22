@@ -7,12 +7,14 @@ export function createRedisConnection() {
   if (!redisInstance) {
     if (process.env.REDIS_URL) {
       // Use REDIS_URL if available (Railway standard)
+      console.log('Connecting to Redis:', process.env.REDIS_URL.replace(/:[^:@]*@/, ':****@'));
       redisInstance = new IORedis(process.env.REDIS_URL, {
         maxRetriesPerRequest: null,
         enableReadyCheck: false,
         lazyConnect: true,
         retryStrategy: (times) => {
           const delay = Math.min(times * 50, 2000);
+          console.log(`Redis connection retry ${times}, waiting ${delay}ms`);
           return delay;
         }
       });
