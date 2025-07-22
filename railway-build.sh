@@ -40,4 +40,15 @@ echo "Copying static files..."
 cp -r apps/cms/.next/static apps/cms/.next/standalone/apps/cms/.next/
 cp -r apps/cms/public apps/cms/.next/standalone/apps/cms/ 2>/dev/null || true
 
+# Copy Prisma engines for standalone deployment
+echo "Copying Prisma engines..."
+mkdir -p apps/cms/.next/standalone/node_modules/.pnpm/@prisma+client@*/node_modules/.prisma/client
+cp -r node_modules/.pnpm/@prisma+client@*/node_modules/.prisma/client/* \
+  apps/cms/.next/standalone/node_modules/.pnpm/@prisma+client@*/node_modules/.prisma/client/ 2>/dev/null || true
+
+# Alternative Prisma location
+mkdir -p apps/cms/.next/standalone/apps/cms/.prisma/client
+cp -r node_modules/.pnpm/@prisma+client@*/node_modules/.prisma/client/* \
+  apps/cms/.next/standalone/apps/cms/.prisma/client/ 2>/dev/null || true
+
 echo "✅ Build complete!"

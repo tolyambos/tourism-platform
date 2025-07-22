@@ -68,6 +68,14 @@ const nextConfig = {
   
   // Output configuration
   output: 'standalone',
+  
+  // Fix Prisma in standalone mode
+  experimental: {
+    outputFileTracingIncludes: {
+      '/api': ['./../../node_modules/.pnpm/@prisma+client@*/node_modules/.prisma/client/**/*'],
+      '/*': ['./../../node_modules/.pnpm/@prisma+client@*/node_modules/.prisma/client/**/*'],
+    },
+  },
 };
 
 // Sentry configuration

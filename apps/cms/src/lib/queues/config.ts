@@ -9,10 +9,15 @@ export function createRedisConnection() {
       // Use REDIS_URL if available (Railway standard)
       console.log('Connecting to Redis:', process.env.REDIS_URL.replace(/:[^:@]*@/, ':****@'));
       redisInstance = new IORedis(process.env.REDIS_URL, {
-        maxRetriesPerRequest: null,
+        maxRetriesPerRequest: 3,
         enableReadyCheck: false,
         lazyConnect: true,
+        connectTimeout: 10000,
         retryStrategy: (times) => {
+          if (times > 3) {
+            console.error('Redis connection failed after 3 retries');
+            return null; // Stop retrying
+          }
           const delay = Math.min(times * 50, 2000);
           console.log(`Redis connection retry ${times}, waiting ${delay}ms`);
           return delay;
