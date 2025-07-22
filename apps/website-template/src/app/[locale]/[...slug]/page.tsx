@@ -31,9 +31,23 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   // Extract SEO data from page sections or use defaults
   const seoData = page.sections.find((s: any) => s.template.name === 'seo-meta')?.content[0]?.data as any;
   
+  // Check if noindex is enabled
+  const seoSettings = siteConfig.seoSettings as Record<string, any> || {};
+  const noindex = seoSettings.noindex || false;
+  
   return {
     title: seoData?.title || `${page.slug} - ${siteConfig.name}`,
-    description: seoData?.description || siteConfig.seoSettings?.description || '',
+    description: seoData?.description || seoSettings.description || '',
+    ...(noindex && {
+      robots: {
+        index: false,
+        follow: false,
+        googleBot: {
+          index: false,
+          follow: false,
+        },
+      },
+    }),
     openGraph: {
       title: seoData?.ogTitle || seoData?.title || `${page.slug} - ${siteConfig.name}`,
       description: seoData?.ogDescription || seoData?.description || '',

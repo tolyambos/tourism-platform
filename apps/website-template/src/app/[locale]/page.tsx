@@ -5,6 +5,56 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { SectionRenderer } from '@/components/section-renderer';
+import type { Metadata } from 'next';
+
+export async function generateMetadata({ 
+  params,
+  searchParams 
+}: { 
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const search = await searchParams;
+  
+  // Get site info from headers
+  const headersList = await headers();
+  const siteDomain = headersList.get('x-site-domain') || '';
+  const siteSubdomain = headersList.get('x-site-subdomain') || '';
+  
+  // Also check for subdomain in query params (for local development)
+  const subdomainParam = search.subdomain as string | undefined;
+  
+  // Load site configuration
+  const lookupValue = siteSubdomain || siteDomain || subdomainParam || '';
+  const siteConfig = await getCachedSiteConfig(lookupValue);
+  
+  if (!siteConfig) {
+    return {
+      title: 'Tourism Platform',
+      description: 'Discover amazing destinations'
+    };
+  }
+
+  // Check if noindex is enabled
+  const seoSettings = siteConfig.seoSettings as Record<string, any> || {};
+  const noindex = seoSettings.noindex || false;
+
+  return {
+    title: seoSettings.title || siteConfig.name,
+    description: seoSettings.description || 'Discover amazing destinations',
+    ...(noindex && {
+      robots: {
+        index: false,
+        follow: false,
+        googleBot: {
+          index: false,
+          follow: false,
+        },
+      },
+    }),
+  };
+}
 
 export default async function HomePage({ 
   params,
