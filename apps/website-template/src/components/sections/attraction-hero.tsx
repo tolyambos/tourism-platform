@@ -108,7 +108,7 @@ export default function AttractionHero({ content = {} }: { content?: any }) {
         {/* Key Features - Desktop only */}
         {safeContent.keyFeatures.length > 0 && (
           <div className="hidden flex-wrap gap-3 justify-center mt-8 md:flex">
-            {safeContent.keyFeatures.map((feature, index) => (
+            {safeContent.keyFeatures.map((feature: string, index: number) => (
               <span key={index} className="px-4 py-1.5 text-sm text-white rounded-full border backdrop-blur-sm bg-white/10 border-white/20">
                 {feature}
               </span>
