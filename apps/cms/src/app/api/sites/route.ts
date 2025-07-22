@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Create site with pages and default sections
-    const { ...siteData } = validatedData;
+    const { locationContext, ...siteData } = validatedData;
     const site = await prisma.site.create({
       data: {
         ...siteData,
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
           enableBooking: true,
           enableReviews: true,
           enableGallery: true,
-          locationContext: validatedData.locationContext
+          locationContext: locationContext || validatedData.name
         },
         pages: {
           create: {
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
             status: 'DRAFT'
           }
         }
-      } as Prisma.SiteCreateInput,
+      },
       include: {
         pages: true
       }
