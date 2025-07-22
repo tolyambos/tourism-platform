@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
-import { prisma, Prisma } from '@tourism/database';
+import { prisma } from '@tourism/database';
 import { z } from 'zod';
 import { cache, CacheManager } from '@/lib/cache';
 import { QueryOptimizer } from '@/lib/db/query-optimizer';
@@ -121,13 +121,13 @@ export async function POST(request: NextRequest) {
           description: `Discover ${validatedData.name} - Your guide to amazing experiences`,
           keywords: [validatedData.name.toLowerCase(), 'tourism', 'travel', 'guide'],
         },
-        theme: validatedData.theme || {
+        theme: JSON.parse(JSON.stringify(validatedData.theme || {
           colors: {
             primary: '#3B82F6',
             secondary: '#10B981',
             accent: '#F59E0B',
           }
-        },
+        })),
         features: {
           enableBooking: true,
           enableReviews: true,

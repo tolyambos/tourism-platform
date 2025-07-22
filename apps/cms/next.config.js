@@ -70,11 +70,9 @@ const nextConfig = {
   output: 'standalone',
   
   // Fix Prisma in standalone mode
-  experimental: {
-    outputFileTracingIncludes: {
-      '/api': ['./../../node_modules/.pnpm/@prisma+client@*/node_modules/.prisma/client/**/*'],
-      '/*': ['./../../node_modules/.pnpm/@prisma+client@*/node_modules/.prisma/client/**/*'],
-    },
+  outputFileTracingIncludes: {
+    '/api': ['./../../node_modules/.pnpm/@prisma+client@*/node_modules/.prisma/client/**/*'],
+    '/*': ['./../../node_modules/.pnpm/@prisma+client@*/node_modules/.prisma/client/**/*'],
   },
 };
 
