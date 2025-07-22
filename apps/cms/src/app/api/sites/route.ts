@@ -176,12 +176,22 @@ export async function POST(request: NextRequest) {
       });
     }
     
-    // Queue content generation
-    const { contentGenerationQueue } = await import('@/lib/queues');
-    await contentGenerationQueue.add('generate-initial-content', {
-      siteId: site.id,
-      pageId: homePage.id
-    });
+    // Queue content generation if Redis is available
+    try {
+      const { getContentGenerationQueue } = await import('@/lib/queues/content-generation.queue');
+      const queue = getContentGenerationQueue();
+      if (queue) {
+        await queue.add('generate-initial-content', {
+          siteId: site.id,
+          pageId: homePage.id
+        });
+      } else {
+        console.log('Redis not available, skipping content generation queue');
+      }
+    } catch (error) {
+      console.log('Could not queue content generation:', error);
+      // Continue without queuing - user can manually generate content later
+    }
     
     // Invalidate user sites cache
     await cache.delete(CacheManager.keys.userSites(user.id));
