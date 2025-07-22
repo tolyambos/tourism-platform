@@ -1,5 +1,8 @@
 import { getRequestConfig } from 'next-intl/server';
-import { locales } from './src/i18n';
+
+// Define locales directly here to avoid circular imports
+export const locales = ['en', 'es', 'fr', 'de', 'it', 'pt', 'ja', 'zh', 'ar', 'ru'] as const;
+export type Locale = (typeof locales)[number];
 
 export default getRequestConfig(async ({ requestLocale }) => {
   // Await the locale from the request

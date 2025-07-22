@@ -1,6 +1,6 @@
 import createMiddleware from 'next-intl/middleware';
 import { NextRequest, NextResponse } from 'next/server';
-import { locales } from './i18n';
+import { locales } from '../i18n';
 
 // Create the internationalization middleware
 const intlMiddleware = createMiddleware({
