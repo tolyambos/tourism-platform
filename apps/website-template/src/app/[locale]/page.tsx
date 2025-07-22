@@ -97,6 +97,12 @@ export default async function HomePage({
   // Use sections directly from the page data
   const sections = page.sections;
   
+  console.log('HomePage rendering with theme:', {
+    hasTheme: !!siteConfig.theme,
+    themeKeys: siteConfig.theme ? Object.keys(siteConfig.theme) : [],
+    theme: siteConfig.theme
+  });
+  
   return (
     <ThemeProvider theme={siteConfig.theme}>
       <div className="min-h-screen flex flex-col">

@@ -47,7 +47,8 @@ export default function SectionRenderer({ section, locale }: SectionRendererProp
       sectionId: section.id,
       componentName,
       hasContent: !!content,
-      contentKeys: Object.keys(contentData)
+      contentKeys: Object.keys(contentData),
+      contentData: componentName === 'AttractionHero' ? contentData : undefined
     });
     
     // Manual component mapping without dynamic imports
