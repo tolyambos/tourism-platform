@@ -2,9 +2,18 @@ import IORedis from 'ioredis';
 
 // Redis connection - only create if Redis is configured
 let redisInstance: IORedis | null = null;
+let connectionAttempted = false;
 
 export function createRedisConnection() {
-  if (!redisInstance) {
+  // Don't attempt connection during build phase
+  if (process.env.NODE_ENV === 'production' && !global.process.env.RAILWAY_DEPLOYMENT_ID) {
+    console.log('Skipping Redis connection during build phase');
+    return null;
+  }
+  
+  if (!redisInstance && !connectionAttempted) {
+    connectionAttempted = true;
+    
     if (process.env.REDIS_URL) {
       try {
         // Use REDIS_URL if available (Railway standard)
@@ -19,6 +28,8 @@ export function createRedisConnection() {
           retryStrategy: (times) => {
             if (times > 3) {
               console.error('Redis connection failed after 3 retries');
+              redisInstance = null; // Clear instance so we don't keep trying
+              connectionAttempted = false;
               return null; // Stop retrying
             }
             const delay = Math.min(times * 50, 2000);
@@ -35,6 +46,16 @@ export function createRedisConnection() {
               return true;
             }
             return false;
+          }
+        });
+        
+        // Handle connection errors
+        redisInstance.on('error', (err) => {
+          console.error('Redis connection error:', err.message);
+          if (err.message.includes('ENOTFOUND') || err.message.includes('ETIMEDOUT')) {
+            console.log('Redis not available, disabling Redis features');
+            redisInstance = null;
+            connectionAttempted = false;
           }
         });
       } catch (error) {

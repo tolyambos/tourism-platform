@@ -42,9 +42,15 @@ export async function GET() {
   try {
     // Check Redis connection - optional for Railway deployment
     if (process.env.REDIS_HOST || process.env.REDIS_URL) {
-      const { redis } = await import('@/lib/queues/config');
-      await redis.ping();
-      checks.checks.redis = 'healthy';
+      const { createRedisConnection } = await import('@/lib/queues/config');
+      const redisInstance = createRedisConnection();
+      
+      if (redisInstance) {
+        await redisInstance.ping();
+        checks.checks.redis = 'healthy';
+      } else {
+        checks.checks.redis = 'not_available';
+      }
     } else {
       checks.checks.redis = 'not_configured';
     }
