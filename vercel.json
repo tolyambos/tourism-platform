@@ -1,7 +1,7 @@
 {
-  "buildCommand": "cd ../.. && pnpm db:generate && cd apps/website-template && pnpm build",
-  "outputDirectory": "apps/website-template/.next",
-  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm build",
+  "outputDirectory": ".next",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile && pnpm db:generate",
   "framework": "nextjs",
   "rootDirectory": "apps/website-template",
   "regions": ["iad1", "sfo1", "lhr1"],
