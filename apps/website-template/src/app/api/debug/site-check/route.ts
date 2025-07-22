@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       subdomain: siteConfig.subdomain,
       status: siteConfig.status,
       pagesCount: siteConfig.pages.length,
-      firstPageSections: siteConfig.pages[0]?.sections.slice(0, 3).map(s => ({
+      firstPageSections: siteConfig.pages[0]?.sections.slice(0, 3).map((s: any) => ({
         id: s.id,
         templateId: s.templateId,
         template: s.template,

@@ -51,7 +51,7 @@ function createFailsafeDynamic(importFn: () => Promise<any>, componentName: stri
 }
 
 // Failsafe section components mapping
-const sectionComponents: Record<string, ComponentType<any>> = {
+const sectionComponents = {
   'HeroBanner': createFailsafeDynamic(() => import('./sections/hero-banner'), 'HeroBanner'),
   'AttractionHero': createFailsafeDynamic(() => import('./sections/attraction-hero'), 'AttractionHero'),
   'AttractionGrid': createFailsafeDynamic(() => import('./sections/attraction-grid'), 'AttractionGrid'),
@@ -76,7 +76,7 @@ const sectionComponents: Record<string, ComponentType<any>> = {
   'TabbedInfo': createFailsafeDynamic(() => import('./sections/tabbed-info-safe'), 'TabbedInfo'),
   'ReviewsCarousel': createFailsafeDynamic(() => import('./sections/reviews-carousel-safe'), 'ReviewsCarousel'),
   'FinalCTA': createFailsafeDynamic(() => import('./sections/final-cta'), 'FinalCTA'),
-};
+} as Record<string, ComponentType<any>>;
 
 interface SectionRendererProps {
   section: {

@@ -1,5 +1,4 @@
 import { prisma } from '@tourism/database';
-import { cache } from 'react';
 
 export interface SiteConfig {
   id: string;
@@ -44,7 +43,7 @@ export interface SiteConfig {
 }
 
 // Cache the site config for the duration of the request
-export const getSiteConfig = cache(async (domainOrSubdomain: string): Promise<SiteConfig | null> => {
+export const getSiteConfig = async (domainOrSubdomain: string): Promise<SiteConfig | null> => {
   try {
     const site = await prisma.site.findFirst({
       where: {
@@ -77,9 +76,9 @@ export const getSiteConfig = cache(async (domainOrSubdomain: string): Promise<Si
     console.error('Error fetching site config:', error);
     return null;
   }
-});
+};
 
-export const getPageBySlug = cache(async (
+export const getPageBySlug = async (
   siteId: string, 
   slug: string, 
   locale: string
@@ -109,4 +108,4 @@ export const getPageBySlug = cache(async (
     console.error('Error fetching page:', error);
     return null;
   }
-});
+};
