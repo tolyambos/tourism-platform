@@ -4,12 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
-    "build": "cd ../.. && pnpm db:generate && cd apps/website-template && next build",
+    "build": "next build",
     "start": "next start -p 3001",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@prisma/client": "^5.22.0",
     "@sentry/nextjs": "^9.40.0",
     "@tourism/database": "workspace:*",
     "@tourism/types": "workspace:*",
@@ -31,6 +32,7 @@
     "@types/react-dom": "^18",
     "eslint": "^9",
     "eslint-config-next": "15.4.1",
+    "prisma": "5.22.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
