@@ -14,7 +14,7 @@ export function RebuildSiteButton({ siteId, siteType }: RebuildSiteButtonProps) 
   const router = useRouter();
 
   const handleRebuild = async () => {
-    if (!confirm('This will delete all existing sections and create new ones with the latest templates. Continue?')) {
+    if (!confirm('This will update your site structure to match the latest templates. Missing sections will be added, and sections will be reordered. Your content will be preserved. Continue?')) {
       return;
     }
 
@@ -31,7 +31,7 @@ export function RebuildSiteButton({ siteId, siteType }: RebuildSiteButtonProps) 
         throw new Error(data.error || 'Failed to rebuild site');
       }
 
-      alert(`Site rebuilt successfully! ${data.sectionsCreated} sections created.`);
+      alert(data.message || `Site structure updated successfully!`);
       router.refresh();
     } catch (error) {
       console.error('Rebuild error:', error);
@@ -59,16 +59,16 @@ export function RebuildSiteButton({ siteId, siteType }: RebuildSiteButtonProps) 
       </div>
       <div className="flex-1 min-w-0 text-left">
         <p className="text-sm font-medium text-gray-900">
-          {isRebuilding ? 'Rebuilding...' : 'Rebuild Site'}
+          {isRebuilding ? 'Updating Structure...' : 'Update Site Structure'}
         </p>
         <p className="text-sm text-gray-500">
           {siteType === 'ATTRACTION' 
-            ? 'Update to new attraction layout' 
+            ? 'Add missing sections, preserve content' 
             : siteType === 'CITY'
-            ? 'Refresh with latest city templates'
+            ? 'Update with latest city sections'
             : siteType === 'REGION'
-            ? 'Update regional content templates'
-            : 'Refresh with latest templates'
+            ? 'Update regional sections'
+            : 'Sync with latest templates'
           }
         </p>
       </div>
