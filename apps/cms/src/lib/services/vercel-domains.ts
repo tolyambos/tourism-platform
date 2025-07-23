@@ -1,7 +1,4 @@
-/**
- * Vercel Domain Management Service
- * Handles automatic domain addition/removal for custom domains
- */
+import dns from 'dns/promises';
 
 interface VercelDomain {
   name: string;
@@ -21,6 +18,15 @@ interface VercelDomain {
   }[];
 }
 
+interface DomainVerification {
+  verified: boolean;
+  verification?: {
+    type: string;
+    domain: string;
+    value: string;
+    reason: string;
+  }[];
+}
 
 class VercelDomainService {
   private apiToken: string;
@@ -45,7 +51,7 @@ class VercelDomainService {
     };
 
     if (this.teamId) {
-      headers['x-vercel-team-id'] = this.teamId;
+      headers['x-team-id'] = this.teamId;
     }
 
     return headers;
@@ -56,15 +62,54 @@ class VercelDomainService {
   }
 
   /**
-   * Add a custom domain to the Vercel project
+   * Check DNS A record for a domain
    */
-  async addDomain(domain: string): Promise<VercelDomain | null> {
+  async checkDNSRecord(domain: string): Promise<{
+    hasCorrectARecord: boolean;
+    currentRecords: string[];
+  }> {
+    try {
+      const records = await dns.resolve4(domain);
+      const hasCorrectARecord = records.includes('76.76.21.21');
+      
+      return {
+        hasCorrectARecord,
+        currentRecords: records
+      };
+    } catch (error) {
+      console.error(`DNS lookup failed for ${domain}:`, error);
+      return {
+        hasCorrectARecord: false,
+        currentRecords: []
+      };
+    }
+  }
+
+  /**
+   * Add a domain to Vercel project
+   */
+  async addDomain(domain: string): Promise<{
+    success: boolean;
+    error?: string;
+    domain?: VercelDomain;
+  }> {
     if (!this.isConfigured()) {
-      console.warn('Vercel API not configured. Skipping domain addition.');
-      return null;
+      return {
+        success: false,
+        error: 'Vercel API not configured'
+      };
     }
 
     try {
+      // First check DNS
+      const dnsCheck = await this.checkDNSRecord(domain);
+      if (!dnsCheck.hasCorrectARecord) {
+        return {
+          success: false,
+          error: `DNS not configured correctly. Expected A record pointing to 76.76.21.21, but found: ${dnsCheck.currentRecords.join(', ') || 'no A records'}`
+        };
+      }
+
       const response = await fetch(
         `${this.baseUrl}/v10/projects/${this.projectId}/domains`,
         {
@@ -80,19 +125,34 @@ class VercelDomainService {
         // If domain already exists, that's okay
         if (response.status === 409) {
           console.log(`Domain ${domain} already exists in project.`);
-          return await this.getDomain(domain);
+          const existingDomain = await this.getDomain(domain);
+          if (existingDomain) {
+            return {
+              success: true,
+              domain: existingDomain
+            };
+          }
         }
         
-        throw new Error(`Failed to add domain: ${response.status} - ${error}`);
+        return {
+          success: false,
+          error: `Failed to add domain: ${response.status} - ${error}`
+        };
       }
 
       const result = await response.json();
       console.log(`Successfully added domain ${domain} to Vercel project.`);
       
-      return result;
+      return {
+        success: true,
+        domain: result
+      };
     } catch (error) {
       console.error('Error adding domain to Vercel:', error);
-      throw error;
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
     }
   }
 
@@ -130,10 +190,9 @@ class VercelDomainService {
   /**
    * Remove a domain from the project
    */
-  async removeDomain(domain: string): Promise<void> {
+  async removeDomain(domain: string): Promise<boolean> {
     if (!this.isConfigured()) {
-      console.warn('Vercel API not configured. Skipping domain removal.');
-      return;
+      return false;
     }
 
     try {
@@ -150,47 +209,19 @@ class VercelDomainService {
       }
 
       console.log(`Successfully removed domain ${domain} from Vercel project.`);
+      return true;
     } catch (error) {
       console.error('Error removing domain from Vercel:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * List all domains for the project
-   */
-  async listDomains(): Promise<VercelDomain[]> {
-    if (!this.isConfigured()) {
-      return [];
-    }
-
-    try {
-      const response = await fetch(
-        `${this.baseUrl}/v9/projects/${this.projectId}/domains`,
-        {
-          method: 'GET',
-          headers: this.headers,
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to list domains: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data.domains || [];
-    } catch (error) {
-      console.error('Error listing domains from Vercel:', error);
-      return [];
+      return false;
     }
   }
 
   /**
    * Verify domain configuration
    */
-  async verifyDomain(domain: string): Promise<{ verified: boolean } | null> {
+  async verifyDomain(domain: string): Promise<DomainVerification> {
     if (!this.isConfigured()) {
-      return null;
+      return { verified: false };
     }
 
     try {
@@ -209,33 +240,64 @@ class VercelDomainService {
       return await response.json();
     } catch (error) {
       console.error('Error verifying domain:', error);
-      return null;
+      return { verified: false };
     }
   }
 
   /**
-   * Get DNS configuration instructions for a domain
+   * Get domain status including DNS and SSL info
    */
-  getDNSInstructions(domain: string): {
-    type: 'CNAME' | 'A';
-    name: string;
-    value: string;
-  }[] {
-    const isApex = !domain.includes('www.');
-    
-    if (isApex) {
-      // For apex domains, use A records
-      return [
-        { type: 'A', name: '@', value: '76.76.21.21' }
-      ];
-    } else {
-      // For subdomains, use CNAME
-      return [
-        { type: 'CNAME', name: domain.split('.')[0], value: 'cname.vercel-dns.com' }
-      ];
+  async getDomainStatus(domain: string): Promise<{
+    exists: boolean;
+    verified: boolean;
+    dnsConfigured: boolean;
+    sslStatus?: string;
+    error?: string;
+  }> {
+    try {
+      // Check DNS first
+      const dnsCheck = await this.checkDNSRecord(domain);
+      
+      // Check if domain exists in Vercel
+      const vercelDomain = await this.getDomain(domain);
+      
+      if (!vercelDomain) {
+        return {
+          exists: false,
+          verified: false,
+          dnsConfigured: dnsCheck.hasCorrectARecord,
+          error: dnsCheck.hasCorrectARecord 
+            ? 'Domain not added to Vercel project' 
+            : 'DNS not configured correctly'
+        };
+      }
+
+      // Try to verify if not already verified
+      if (!vercelDomain.verified) {
+        const verification = await this.verifyDomain(domain);
+        return {
+          exists: true,
+          verified: verification.verified,
+          dnsConfigured: dnsCheck.hasCorrectARecord,
+          sslStatus: verification.verified ? 'active' : 'pending'
+        };
+      }
+
+      return {
+        exists: true,
+        verified: vercelDomain.verified,
+        dnsConfigured: dnsCheck.hasCorrectARecord,
+        sslStatus: 'active'
+      };
+    } catch (error) {
+      return {
+        exists: false,
+        verified: false,
+        dnsConfigured: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
     }
   }
 }
 
-// Export singleton instance
 export const vercelDomainService = new VercelDomainService();
