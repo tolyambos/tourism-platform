@@ -72,12 +72,24 @@ class VercelDomainService {
       const records = await dns.resolve4(domain);
       const hasCorrectARecord = records.includes('76.76.21.21');
       
+      console.log(`DNS check for ${domain}:`, {
+        records,
+        hasCorrectARecord
+      });
+      
       return {
         hasCorrectARecord,
         currentRecords: records
       };
     } catch (error) {
-      console.error(`DNS lookup failed for ${domain}:`, error);
+      // If it's ENODATA or ENOTFOUND, the domain might not have A records
+      const err = error as NodeJS.ErrnoException;
+      if (err.code === 'ENODATA' || err.code === 'ENOTFOUND') {
+        console.log(`No A records found for ${domain}`);
+      } else {
+        console.error(`DNS lookup failed for ${domain}:`, error);
+      }
+      
       return {
         hasCorrectARecord: false,
         currentRecords: []
@@ -88,7 +100,7 @@ class VercelDomainService {
   /**
    * Add a domain to Vercel project
    */
-  async addDomain(domain: string): Promise<{
+  async addDomain(domain: string, skipDNSCheck = false): Promise<{
     success: boolean;
     error?: string;
     domain?: VercelDomain;
@@ -101,13 +113,14 @@ class VercelDomainService {
     }
 
     try {
-      // First check DNS
-      const dnsCheck = await this.checkDNSRecord(domain);
-      if (!dnsCheck.hasCorrectARecord) {
-        return {
-          success: false,
-          error: `DNS not configured correctly. Expected A record pointing to 76.76.21.21, but found: ${dnsCheck.currentRecords.join(', ') || 'no A records'}`
-        };
+      // First check DNS unless skipped
+      if (!skipDNSCheck) {
+        const dnsCheck = await this.checkDNSRecord(domain);
+        if (!dnsCheck.hasCorrectARecord) {
+          // For now, let's just warn but still try to add
+          console.warn(`DNS warning for ${domain}: Expected A record pointing to 76.76.21.21, but found: ${dnsCheck.currentRecords.join(', ') || 'no A records'}`);
+          // We'll still proceed since DNS might not have propagated to this server yet
+        }
       }
 
       const response = await fetch(
@@ -251,6 +264,7 @@ class VercelDomainService {
     exists: boolean;
     verified: boolean;
     dnsConfigured: boolean;
+    dnsRecords?: string[];
     sslStatus?: string;
     error?: string;
   }> {
@@ -266,9 +280,10 @@ class VercelDomainService {
           exists: false,
           verified: false,
           dnsConfigured: dnsCheck.hasCorrectARecord,
-          error: dnsCheck.hasCorrectARecord 
-            ? 'Domain not added to Vercel project' 
-            : 'DNS not configured correctly'
+          dnsRecords: dnsCheck.currentRecords,
+          error: dnsCheck.currentRecords.length > 0
+            ? `DNS records found (${dnsCheck.currentRecords.join(', ')}), but domain not added to Vercel` 
+            : 'No DNS A records found'
         };
       }
 
@@ -279,6 +294,7 @@ class VercelDomainService {
           exists: true,
           verified: verification.verified,
           dnsConfigured: dnsCheck.hasCorrectARecord,
+          dnsRecords: dnsCheck.currentRecords,
           sslStatus: verification.verified ? 'active' : 'pending'
         };
       }
@@ -287,6 +303,7 @@ class VercelDomainService {
         exists: true,
         verified: vercelDomain.verified,
         dnsConfigured: dnsCheck.hasCorrectARecord,
+        dnsRecords: dnsCheck.currentRecords,
         sslStatus: 'active'
       };
     } catch (error) {

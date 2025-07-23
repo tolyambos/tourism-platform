@@ -13,6 +13,7 @@ interface DomainInfo {
   exists: boolean;
   verified: boolean;
   dnsConfigured: boolean;
+  dnsRecords?: string[];
   sslStatus?: string;
   error?: string;
 }
@@ -101,8 +102,8 @@ export function DomainStatus({ domain, subdomain }: DomainStatusProps) {
     );
   }
 
-  // DNS not configured
-  if (!domainInfo.dnsConfigured) {
+  // DNS not configured or domain not in Vercel
+  if (!domainInfo.dnsConfigured || !domainInfo.exists) {
     return (
       <div className="mt-2 rounded-md bg-red-50 p-4">
         <div className="flex">
@@ -110,10 +111,24 @@ export function DomainStatus({ domain, subdomain }: DomainStatusProps) {
             <XCircle className="h-5 w-5 text-red-400" />
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">DNS configuration required</h3>
+            <h3 className="text-sm font-medium text-red-800">
+              {!domainInfo.exists ? 'Domain setup required' : 'DNS configuration required'}
+            </h3>
             <div className="mt-2 text-sm text-red-700">
               <p className="mb-2">{domainInfo.error || 'DNS A record not pointing to Vercel.'}</p>
-              <p className="font-medium">Add this DNS record:</p>
+              
+              {domainInfo.dnsRecords && domainInfo.dnsRecords.length > 0 && (
+                <div className="mb-2">
+                  <p className="font-medium">Current DNS records:</p>
+                  <div className="mt-1 rounded bg-red-100 p-2 font-mono text-xs">
+                    {domainInfo.dnsRecords.map((record, i) => (
+                      <div key={i}>A → {record}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <p className="font-medium">Required DNS record:</p>
               <div className="mt-2 rounded bg-red-100 p-2 font-mono text-xs">
                 <div>Type: A</div>
                 <div>Name: @ (or {domain})</div>
@@ -122,6 +137,12 @@ export function DomainStatus({ domain, subdomain }: DomainStatusProps) {
               <p className="mt-2 text-xs">
                 Note: If using Cloudflare, ensure the proxy (orange cloud) is disabled.
               </p>
+              
+              {!domainInfo.exists && domainInfo.dnsRecords && domainInfo.dnsRecords.length > 0 && (
+                <p className="mt-2 text-xs font-medium">
+                  DNS records detected. Click &quot;Save All Settings&quot; again to add domain to Vercel.
+                </p>
+              )}
             </div>
           </div>
         </div>
