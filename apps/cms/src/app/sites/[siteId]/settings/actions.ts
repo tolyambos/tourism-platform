@@ -6,20 +6,23 @@ import { prisma } from '@tourism/database';
 import { vercelDomainService } from '@/lib/services/vercel-domains';
 
 export async function updateSiteSettings(siteId: string, formData: FormData) {
-  const user = await currentUser();
-  
-  if (!user) {
-    throw new Error('Unauthorized');
-  }
+  try {
+    const user = await currentUser();
+    
+    if (!user) {
+      throw new Error('Unauthorized');
+    }
 
-  const name = formData.get('site-name') as string;
-  const subdomain = formData.get('subdomain') as string;
-  const domain = formData.get('custom-domain') as string;
-  const status = formData.get('status') as string;
-  const defaultLanguage = formData.get('default-language') as string;
-  const metaTitle = formData.get('meta-title') as string;
-  const metaDescription = formData.get('meta-description') as string;
-  const noindex = formData.get('noindex') === 'on';
+    const name = formData.get('site-name') as string;
+    const subdomain = formData.get('subdomain') as string;
+    const domain = formData.get('custom-domain') as string;
+    const status = formData.get('status') as string;
+    const defaultLanguage = formData.get('default-language') as string;
+    const metaTitle = formData.get('meta-title') as string;
+    const metaDescription = formData.get('meta-description') as string;
+    const noindex = formData.get('noindex') === 'on';
+
+    console.log('updateSiteSettings called with:', { siteId, domain });
 
   // Get selected languages
   const languages = ['en', 'es', 'fr', 'de', 'it', 'pt', 'ja', 'zh'].filter(
@@ -44,13 +47,19 @@ export async function updateSiteSettings(siteId: string, formData: FormData) {
     
     // Domain was added or changed
     if (newDomain && newDomain !== oldDomain) {
+      console.log('Domain change detected:', { oldDomain, newDomain });
+      
       // Remove old domain if it exists
       if (oldDomain) {
+        console.log('Removing old domain:', oldDomain);
         await vercelDomainService.removeDomain(oldDomain);
       }
       
       // Add new domain
+      console.log('Adding new domain:', newDomain);
       const result = await vercelDomainService.addDomain(newDomain);
+      console.log('Add domain result:', result);
+      
       if (!result.success) {
         throw new Error(result.error || 'Failed to add domain to Vercel');
       }
@@ -75,8 +84,12 @@ export async function updateSiteSettings(siteId: string, formData: FormData) {
     }
   });
 
-  revalidatePath(`/sites/${siteId}/settings`);
-  revalidatePath(`/sites/${siteId}`);
+    revalidatePath(`/sites/${siteId}/settings`);
+    revalidatePath(`/sites/${siteId}`);
+  } catch (error) {
+    console.error('Error in updateSiteSettings:', error);
+    throw error;
+  }
 }
 
 export async function checkDomainStatus(domain: string) {
