@@ -5,6 +5,7 @@ import { Header } from "@/components/header";
 import { prisma } from "@tourism/database";
 import { ArrowLeft, Globe, Languages, Shield, Trash2 } from "lucide-react";
 import { updateSiteSettings } from "./actions";
+import { DomainStatus } from "@/components/sites/domain-status";
 
 interface PageProps {
   params: Promise<{ siteId: string }>;
@@ -103,9 +104,7 @@ export default async function SiteSettingsPage({ params }: PageProps) {
                     defaultValue={site.domain || ''}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
-                  <p className="mt-1 text-sm text-gray-500">
-                    Add your domain&apos;s CNAME record pointing to {site.subdomain}.tourism-platform.com
-                  </p>
+                  <DomainStatus domain={site.domain} subdomain={site.subdomain} />
                 </div>
 
                 <div>
