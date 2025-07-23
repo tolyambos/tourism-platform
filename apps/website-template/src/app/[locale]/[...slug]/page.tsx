@@ -21,7 +21,10 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const siteSubdomain = headersList.get('x-site-subdomain') || '';
   const subdomainParam = search.subdomain as string | undefined;
   
-  const lookupValue = siteSubdomain || siteDomain || subdomainParam || '';
+  // For custom domains, use the full domain; for subdomains, use subdomain
+  const lookupValue = siteDomain && !siteDomain.includes('tourism-platform.com') 
+    ? siteDomain 
+    : siteSubdomain || subdomainParam || '';
   const siteConfig = await getSiteConfig(lookupValue);
   if (!siteConfig) return {};
   
@@ -77,7 +80,10 @@ export default async function DynamicPage({ params, searchParams }: PageProps) {
   const subdomainParam = search.subdomain as string | undefined;
   
   // Load site configuration
-  const lookupValue = siteSubdomain || siteDomain || subdomainParam || '';
+  // For custom domains, use the full domain; for subdomains, use subdomain
+  const lookupValue = siteDomain && !siteDomain.includes('tourism-platform.com') 
+    ? siteDomain 
+    : siteSubdomain || subdomainParam || '';
   const siteConfig = await getSiteConfig(lookupValue);
   if (!siteConfig) {
     notFound();

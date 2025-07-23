@@ -26,7 +26,10 @@ export async function generateMetadata({
   const subdomainParam = search.subdomain as string | undefined;
   
   // Load site configuration
-  const lookupValue = siteSubdomain || siteDomain || subdomainParam || '';
+  // For custom domains, use the full domain; for subdomains, use subdomain
+  const lookupValue = siteDomain && !siteDomain.includes('tourism-platform.com') 
+    ? siteDomain 
+    : siteSubdomain || subdomainParam || '';
   const siteConfig = await getCachedSiteConfig(lookupValue);
   
   if (!siteConfig) {
@@ -75,7 +78,10 @@ export default async function HomePage({
   const subdomainParam = search.subdomain as string | undefined;
   
   // Load site configuration with caching
-  const lookupValue = siteSubdomain || siteDomain || subdomainParam || '';
+  // For custom domains, use the full domain; for subdomains, use subdomain
+  const lookupValue = siteDomain && !siteDomain.includes('tourism-platform.com') 
+    ? siteDomain 
+    : siteSubdomain || subdomainParam || '';
   const siteConfig = await getCachedSiteConfig(lookupValue);
   
   if (!siteConfig) {
